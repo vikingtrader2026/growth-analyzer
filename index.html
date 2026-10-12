@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Growth Analyzer Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dkbase: '#0d1117',
+            dkcard: '#161b22',
+            dkborder: '#30363d',
+            dkhover: '#1c2129',
+            dksurface: '#21262d',
+            accent: '#00d4aa',
+            accentdark: '#00a888',
+            positive: '#00ff7f',
+            posdim: '#00cc66',
+            negative: '#ff4d4d',
+            negdim: '#cc3333',
+            warning: '#ffd700',
+            ltbase: '#f0f4f8',
+            ltcard: '#ffffff',
+            ltborder: '#d1d9e0',
+            lttext: '#1f2937',
+            ltsec: '#6b7280',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['Courier New', 'Courier', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --textsec: #8b949e;
+      --accent: #00d4aa;
+      --positive: #00ff7f;
+      --negative: #ff4d4d;
+      --warning: #ffd700;
+    }
+    .light-mode {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --border: #d1d9e0;
+      --text: #1f2937;
+      --textsec: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; transition: background 0.3s, color 0.3s; }
+    .dark body, body:not(.light-mode) { background: var(--bg); color: var(--text); }
+    .light-mode body, .light-mode { background: var(--bg); color: var(--text); }
+    .font-mono { font-family: 'Courier New', Courier, monospace; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+    /* Animations */
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,170,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(0,212,170,0.1); }
+    }
+    .pulse-border { animation: pulse-border 2s infinite; }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    .light-mode .skeleton {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+    }
+    @keyframes fadein { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .fade-in { animation: fadein 0.3s ease; }
+    @keyframes progress { from { width: 0%; } to { width: 100%; } }
+
+    /* Global progress bar */
+    #global-progress-bar { height: 3px; background: linear-gradient(90deg, #00d4aa, #00ff7f); transition: width 0.3s; }
+
+    /* Tabs */
+    .tab-btn { transition: all 0.2s ease; }
+    .tab-btn.active { color: #00d4aa; border-color: #00d4aa; }
+
+    /* Table */
+    .stock-row { transition: background 0.15s ease; cursor: pointer; }
+    .stock-row:hover { background: #1c212988; }
+    .light-mode .stock-row:hover { background: #f3f4f6; }
+
+    /* Sector card */
+    .sector-card { transition: all 0.2s ease; cursor: pointer; border: 2px solid transparent; }
+    .sector-card:hover { transform: translateY(-2px); }
+    .sector-card.pulse-green { animation: pulse-border 2s infinite; }
+    .sector-card.pulse-red { animation: pulse-border 2s infinite; box-shadow: 0 0 0 0 rgba(255,77,77,0.4); }
+    @keyframes pulse-border-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,77,77,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(255,77,77,0.1); }
+    }
+    .sector-card.pulse-red { animation: pulse-border-red 2s infinite; }
+
+    /* Pill */
+    .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; }
+    .pill-green { background: rgba(0,255,127,0.15); color: #00ff7f; }
+    .pill-red { background: rgba(255,77,77,0.15); color: #ff4d4d; }
+    .pill-gray { background: rgba(139,148,158,0.15); color: #8b949e; }
+    .pill-yellow { background: rgba(255,215,0,0.15); color: #ffd700; }
+
+    .light-mode .pill-green { background: rgba(0,180,80,0.1); color: #059669; }
+    .light-mode .pill-red { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .light-mode .pill-gray { background: rgba(107,114,128,0.1); color: #6b7280; }
+    .light-mode .pill-yellow { background: rgba(202,138,4,0.1); color: #b45309; }
+
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2rem; max-width: 420px; width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .light-mode .modal-overlay { background: rgba(0,0,0,0.3); }
+
+    /* Search dropdown */
+    #search-dropdown-9f3a {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 60;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; max-height: 300px; overflow-y: auto;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4); display: none;
+    }
+    .search-item { padding: 10px 16px; cursor: pointer; transition: background 0.15s; }
+    .search-item:hover { background: #1c2129; }
+    .light-mode .search-item:hover { background: #f3f4f6; }
+
+    /* Bottom mobile nav */
+    .bottom-nav { display: none; }
+    @media (max-width: 767px) {
+      .bottom-nav {
+        display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+        background: var(--card); border-top: 1px solid var(--border);
+        padding: 8px 0; padding-bottom: max(8px, env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Watchlist drawer */
+    #watchlist-panel-x2k1 {
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    @media (max-width: 767px) {
+      #watchlist-panel-x2k1 {
+        position: fixed; bottom: 56px; left: 0; right: 0; z-index: 40;
+        max-height: 50vh; border-radius: 16px 16px 0 0;
+        transform: translateY(100%); opacity: 0;
+      }
+      #watchlist-panel-x2k1.open { transform: translateY(0); opacity: 1; }
+    }
+    @media (min-width: 768px) {
+      #watchlist-panel-x2k1 {
+        position: fixed; top: 64px; right: 0; width: 300px; bottom: 0; z-index: 40;
+        transform: translateX(100%); opacity: 0;
+      }
+      #watchlist-panel-x2k1.open { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Range slider visual */
+    .range-track {
+      height: 8px; border-radius: 4px; position: relative;
+      background: linear-gradient(90deg, #ff4d4d, #ffd700, #00ff7f);
+    }
+    .range-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #fff; border: 3px solid #00d4aa;
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      box-shadow: 0 0 8px rgba(0,212,170,0.5);
+    }
+
+    /* Hide scrollbar for tab area */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body data-id="0" style="background:#0d1117;color:#e6edf3;">
+  <app-icon data-id="1" hidden data-icon="trending-up" data-palette="Green"></app-icon>
+  <app-disclaimer data-id="2" intent="financial"></app-disclaimer>
+
+  <!-- Global Progress Bar -->
+  <div data-id="3" id="global-progress-wrap" class="fixed top-0 left-0 right-0 z-[200] h-[3px] bg-transparent" style="display:none;">
+    <div data-id="4" id="global-progress-bar" style="width:0%;"></div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div data-id="5" id="apikey-modal-k2f8" class="modal-overlay" style="display:none;">
+    <div data-id="6" class="modal-box text-center">
+      <div data-id="7" class="text-4xl mb-3">🔐</div>
+      <h2 data-id="8" class="text-xl font-bold mb-1" style="color:var(--text);">Connect Your Finnhub API</h2>
+      <p data-id="9" class="text-sm mb-5" style="color:var(--textsec);">Enter your free Finnhub API key to power the dashboard with live market data.</p>
+      <input data-id="10" id="apikey-input-j4r2" type="password" placeholder="Enter your Finnhub API key..." class="w-full px-4 py-3 rounded-xl text-sm font-mono mb-4 outline-none focus:ring-2 focus:ring-[#00d4aa]" style="background:var(--bg);border:1px solid var(--border);color:var(--text);" />
+      <button data-id="11" id="apikey-submit-n7s3" class="w-full py-3 rounded-xl font-semibold text-sm text-white" style="background:linear-gradient(135deg,#00d4aa,#00ff7f);">Connect & Launch Dashboard</button>
+      <p data-id="12" class="text-xs mt-3" style="color:var(--textsec);">Get a free key at <a data-id="13" href="https://finnhub.io" target="_blank" rel="noopener" class="underline" style="color:#00d4aa;">finnhub.io</a></p>
+    </div>
+  </div>
+
+  <!-- Settings Modal (re-enter key) -->
+  <div data-id="14" id="settings-modal-a1b2" class="modal-overlay" style="display:none;">
+    <div data-id="15" class="modal-box">
+      <div data-id="16" class="flex items-center justify-between mb-4">
+        <h3 data-id="17" class="font-bold text-lg" style="color:var(--text);">Settings</h3>
+        <button data-id="18" id="settings-close-c3d4" class="p-1 rounded-lg hover:bg-[#21262d]"><i data-id="19" data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <label data-id="20" class="block text-xs font-medium mb-1" style="color:var(--textsec);">Finnhub API Key</label>
+      <input data-id="21" id="settings-key-e5f6" type="password" placeholder="Enter your API key..." class="w-full px-4 py-3 rounded-xl text-sm font-mono mb-4 outline-none focus:ring-2 focus:ring-[#00d4aa]" style="background:var(--bg);border:1px solid var(--border);color:var(--text);" />
+      <button data-id="22" id="settings-save-g7h8" class="w-full py-3 rounded-xl font-semibold text-sm text-white" style="background:linear-gradient(135deg,#00d4aa,#00ff7f);">Save Key</button>
+    </div>
+  </div>
+
+  <!-- Main App (hidden until key is set) -->
+  <div data-id="23" id="app-main-wrap" style="display:none;">
+
+    <!-- Header -->
+    <header data-id="24" id="header-bar-m3n4" class="sticky top-0 z-50 px-4 md:px-6 py-3 flex items-center gap-3 border-b" style="background:var(--card);border-color:var(--border);">
+      <div data-id="25" class="flex items-center gap-2 shrink-0">
+        <span data-id="26" class="text-lg md:text-xl font-extrabold bg-gradient-to-r from-[#00d4aa] to-[#00ff7f] bg-clip-text text-transparent">📈 Growth Analyzer</span>
+      </div>
+      <!-- Search (center) -->
+      <div data-id="27" class="flex-1 max-w-xl mx-2 md:mx-4 relative hidden md:block">
+        <div data-id="28" class="relative">
+          <i data-id="29" data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color:var(--textsec);"></i>
+          <input data-id="30" id="search-input-p1q2" type="text" placeholder="Search by stock name or ticker (e.g. Apple, AAPL)..." class="w-full pl-10 pr-4 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#00d4aa]" style="background:var(--bg);border:1px solid var(--border);color:var(--text);" />
+        </div>
+        <div data-id="31" id="search-dropdown-9f3a"></div>
+      </div>
+      <!-- Right controls -->
+      <div data-id="32" class="flex items-center gap-2 shrink-0 ml-auto">
+        <!-- Auto Refresh Toggle -->
+        <div data-id="33" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style="background:var(--bg);border:1px solid var(--border);">
+          <span data-id="34" style="color:var(--textsec);">Auto</span>
+          <button data-id="35" id="auto-refresh-btn-r3s4" class="w-8 h-4 rounded-full relative transition-colors" style="background:#30363d;">
+            <span data-id="36" id="auto-refresh-dot-t5u6" class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform"></span>
+          </button>
+          <span data-id="37" id="auto-refresh-timer-v7w8" class="font-mono text-[10px]" style="color:var(--textsec);display:none;">60s</span>
+        </div>
+        <!-- Theme toggle -->
+        <button data-id="38" id="theme-toggle-x9y0" class="p-2 rounded-lg hover:bg-[#21262d] transition" title="Toggle theme"><i data-id="39" data-lucide="moon" class="w-4 h-4"></i></button>
+        <!-- Watchlist toggle -->
+        <button data-id="40" id="watchlist-toggle-a2b3" class="p-2 rounded-lg hover:bg-[#21262d] transition relative" title="Watchlist"><i data-id="41" data-lucide="star" class="w-4 h-4"></i><span data-id="42" id="watchlist-count-c4d5" class="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full text-[10px] font-bold flex items-center justify-center bg-[#00d4aa] text-[#0d1117]" style="display:none;">0</span></button>
+        <!-- Settings -->
+        <button data-id="43" id="settings-btn-e6f7" class="p-2 rounded-lg hover:bg-[#21262d] transition" title="Settings"><i data-id="44" data-lucide="settings" class="w-4 h-4"></i></button>
+        <!-- Refresh -->
+        <button data-id="45" id="refresh-btn-g8h9" class="p-2 rounded-lg hover:bg-[#21262d] transition" title="Refresh data"><i data-id="46" data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+        <!-- Date/Time -->
+        <div data-id="47" id="datetime-display-i0j1" class="hidden lg:block text-xs font-mono px-3 py-1.5 rounded-lg" style="color:var(--textsec);background:var(--bg);border:1px solid var(--border);"></div>
+      </div>
+    </header>
+
+    <!-- Mobile search -->
+    <div data-id="48" class="md:hidden px-4 py-2 relative" style="background:var(--card);border-bottom:1px solid var(--border);">
+      <div data-id="49" class="relative">
+        <i data-id="50" data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color:var(--textsec);"></i>
+        <input data-id="51" id="search-input-mobile-k2l3" type="text" placeholder="Search ticker or company..." class="w-full pl-10 pr-4 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#00d4aa]" style="background:var(--bg);border:1px solid var(--border);color:var(--text);" />
+      </div>
+      <div data-id="52" id="search-dropdown-mobile-m4n5" style="position:absolute;top:100%;left:16px;right:16px;z-index:60;background:var(--card);border:1px solid var(--border);border-radius:12px;max-height:250px;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.4);display:none;"></div>
+    </div>
+
+    <!-- Desktop Tab Navigation -->
+    <nav data-id="53" class="hidden md:flex items-center gap-1 px-6 py-2 border-b" style="background:var(--card);border-color:var(--border);">
+      <button data-id="54" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium border-b-2 border-transparent" data-tab="market">
+        <i data-id="55" data-lucide="bar-chart-3" class="w-4 h-4 inline mr-1"></i>Market Flow
+      </button>
+      <button data-id="56" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium border-b-2 border-transparent" data-tab="sector">
+        <i data-id="57" data-lucide="grid-3x3" class="w-4 h-4 inline mr-1"></i>Sector Flow
+      </button>
+      <button data-id="58" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium border-b-2 border-transparent" data-tab="detail">
+        <i data-id="59" data-lucide="candlestick-chart" class="w-4 h-4 inline mr-1"></i>Stock Detail
+      </button>
+    </nav>
+
+    <!-- Content -->
+    <div data-id="60" class="flex">
+      <main data-id="61" class="flex-1 min-h-screen pb-20 md:pb-8">
+
+        <!-- TAB 1: Market Flow -->
+        <section data-id="62" id="tab-market-o5p6" class="p-4 md:p-6 fade-in">
+          <div data-id="63" class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div data-id="64">
+              <h2 data-id="65" class="text-lg md:text-xl font-bold">Institutional Money Flow — Top Holdings</h2>
+              <p data-id="66" class="text-xs mt-0.5" style="color:var(--textsec);">Tracking 20 major institutional stocks for flow signals</p>
+            </div>
+            <div data-id="67" class="flex items-center gap-2">
+              <div data-id="68" class="relative">
+                <select data-id="69" id="flow-filter-q7r8" class="appearance-none px-3 py-2 pr-8 rounded-xl text-xs font-medium outline-none cursor-pointer" style="background:var(--bg);border:1px solid var(--border);color:var(--text);">
+                  <option data-id="70" value="all">All Signals</option>
+                  <option data-id="71" value="inflow">Inflow Only</option>
+                  <option data-id="72" value="outflow">Outflow Only</option>
+                  <option data-id="73" value="neutral">Neutral Only</option>
+                </select>
+                <i data-id="74" data-lucide="chevron-down" class="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:var(--textsec);"></i>
+              </div>
+            </div>
+          </div>
+          <!-- Summary bar -->
+          <div data-id="75" id="flow-summary-s9t0" class="flex flex-wrap gap-3 mb-4">
+            <div data-id="76" class="skeleton h-8 w-32"></div>
+            <div data-id="77" class="skeleton h-8 w-32"></div>
+            <div data-id="78" class="skeleton h-8 w-32"></div>
+          </div>
+          <!-- Table -->
+          <div data-id="79" class="overflow-x-auto rounded-2xl" style="background:var(--card);border:1px solid var(--border);">
+            <table data-id="80" class="w-full text-left text-sm">
+              <thead data-id="81">
+                <tr data-id="82" style="border-bottom:1px solid var(--border);">
+                  <th data-id="83" class="px-4 py-3 text-xs font-semibold uppercase tracking-wider cursor-pointer select-none" data-sort="symbol" style="color:var(--textsec);">Stock <i data-id="84" data-lucide="chevrons-up-down" class="w-3 h-3 inline"></i></th>
+                  <th data-id="85" class="px-4 py-3 text-xs font-semibold uppercase tracking-wider cursor-pointer select-none hidden md:table-cell" data-sort="name" style="color:var(--textsec);">Company <i data-id="86" data-lucide="chevrons-up-down" class="w-3 h-3 inline"></i></th>
+                  <th data-id="87" class="px-4 py-3 text-xs font-semibold uppercase tracking-wider cursor-pointer select-none text-right" data-sort="price" style="color:var(--textsec);">Price <i data-id="88" data-lucide="chevrons-up-down" class="w-3 h-3 inline"></i></th>
+                  <th data-id="89" class="px-4 py-3 text-xs font-semibold uppercase tracking-wider cursor-pointer select-none text-right" data-sort="change" style="color:var(--textsec);">Change % <i data-id="90" data-lucide="chevrons-up-down" class="w-3 h-3 inline"></i></th>
+                  <th data-id="91" class="px-4 py-3 text-xs font-semibold uppercase tracking-wider hidden lg:table-cell" style="color:var(--textsec);">Day Range</th>
+                  <th data-id="92" class="px-4 py-3 text-xs font-semibold uppercase tracking-wider hidden xl:table-cell cursor-pointer select-none" data-sort="industry" style="color:var(--textsec);">Industry</th>
+                  <th data-id="93" class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-center" style="color:var(--textsec);">Flow Signal</th>
+                </tr>
+              </thead>
+              <tbody data-id="94" id="market-table-body-u1v2"></tbody>
+            </table>
+          </div>
+          <!-- Skeleton loader for table -->
+          <div data-id="95" id="market-skeleton-w3x4" class="space-y-2 mt-2">
+            <div data-id="96" class="skeleton h-12 w-full"></div>
+            <div data-id="97" class="skeleton h-12 w-full"></div>
+            <div data-id="98" class="skeleton h-12 w-full"></div>
+            <div data-id="99" class="skeleton h-12 w-full"></div>
+            <div data-id="100" class="skeleton h-12 w-full"></div>
+          </div>
+        </section>
+
+        <!-- TAB 2: Sector Flow -->
+        <section data-id="101" id="tab-sector-y5z6" class="p-4 md:p-6 fade-in" style="display:none;">
+          <div data-id="102" class="mb-4">
+            <h2 data-id="103" class="text-lg md:text-xl font-bold">Sector Money Heatmap</h2>
+            <p data-id="104" class="text-xs mt-0.5" style="color:var(--textsec);">Sector ETF proxies showing real-time money flow direction</p>
+          </div>
+          <!-- Heatmap Grid -->
+          <div data-id="105" id="sector-grid-a7b8" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+            <div data-id="106" class="skeleton h-28 w-full"></div>
+            <div data-id="107" class="skeleton h-28 w-full"></div>
+            <div data-id="108" class="skeleton h-28 w-full"></div>
+            <div data-id="109" class="skeleton h-28 w-full"></div>
+            <div data-id="110" class="skeleton h-28 w-full"></div>
+            <div data-id="111" class="skeleton h-28 w-full"></div>
+          </div>
+          <!-- Bar Chart -->
+          <div data-id="112" class="rounded-2xl p-4 md:p-6" style="background:var(--card);border:1px solid var(--border);">
+            <h3 data-id="113" class="text-sm font-semibold mb-3">Sector Performance Today</h3>
+            <div data-id="114" class="relative h-64 md:h-80">
+              <canvas data-id="115" id="sector-chart-c9d0"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: Stock Detail -->
+        <section data-id="116" id="tab-detail-e1f2" class="p-4 md:p-6 fade-in" style="display:none;">
+          <!-- Empty state -->
+          <div data-id="117" id="detail-empty-g3h4" class="flex flex-col items-center justify-center py-20 text-center">
+            <i data-id="118" data-lucide="candlestick-chart" class="w-16 h-16 mb-4" style="color:var(--textsec);"></i>
+            <h3 data-id="119" class="text-lg font-semibold mb-1">No Stock Selected</h3>
+            <p data-id="120" class="text-sm" style="color:var(--textsec);">Search for a ticker or click a stock from the Market Flow tab</p>
+          </div>
+          <!-- Detail content (hidden until stock is loaded) -->
+          <div data-id="121" id="detail-content-i5j6" style="display:none;">
+            <!-- Header Card -->
+            <div data-id="122" id="detail-header-k7l8" class="rounded-2xl p-5 md:p-6 mb-4" style="background:var(--card);border:1px solid var(--border);"></div>
+            <!-- Metrics Row -->
+            <div data-id="123" id="detail-metrics-m9n0" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4"></div>
+            <!-- 52-Week Range -->
+            <div data-id="124" id="detail-range-o1p2" class="rounded-2xl p-5 mb-4" style="background:var(--card);border:1px solid var(--border);"></div>
+            <!-- Money Flow Signal -->
+            <div data-id="125" id="detail-signal-q3r4" class="rounded-2xl p-5 mb-4" style="background:var(--card);border:1px solid var(--border);"></div>
+            <!-- Day Range Bar -->
+            <div data-id="126" id="detail-dayrange-s5t6" class="rounded-2xl p-5 mb-4" style="background:var(--card);border:1px solid var(--border);"></div>
+            <!-- Intraday Chart -->
+            <div data-id="127" class="rounded-2xl p-4 md:p-6 mb-4" style="background:var(--card);border:1px solid var(--border);">
+              <div data-id="128" class="flex items-center justify-between mb-3">
+                <h3 data-id="129" class="text-sm font-semibold">Today's Price Action</h3>
+                <span data-id="130" class="text-[10px] px-2 py-0.5 rounded-full" style="background:rgba(255,215,0,0.15);color:#ffd700;">Simulated</span>
+              </div>
+              <div data-id="131" class="relative h-48 md:h-64">
+                <canvas data-id="132" id="intraday-chart-u7v8"></canvas>
+              </div>
+              <p data-id="133" class="text-[10px] mt-2" style="color:var(--textsec);">Intraday chart is simulated — upgrade to Finnhub Premium for real tick data</p>
+            </div>
+            <!-- Institutional Ownership -->
+            <div data-id="134" id="detail-ownership-w9x0" class="rounded-2xl p-4 md:p-6" style="background:var(--card);border:1px solid var(--border);display:none;">
+              <h3 data-id="135" class="text-sm font-semibold mb-3">Top Institutional Holders</h3>
+              <div data-id="136" class="overflow-x-auto">
+                <table data-id="137" class="w-full text-left text-sm">
+                  <thead data-id="138">
+                    <tr data-id="139" style="border-bottom:1px solid var(--border);">
+                      <th data-id="140" class="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style="color:var(--textsec);">Institution</th>
+                      <th data-id="141" class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-right" style="color:var(--textsec);">Shares</th>
+                      <th data-id="142" class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-right" style="color:var(--textsec);">% Change</th>
+                      <th data-id="143" class="px-3 py-2 text-xs font-semibold uppercase tracking-wider hidden md:table-cell" style="color:var(--textsec);">Reported</th>
+                    </tr>
+                  </thead>
+                  <tbody data-id="144" id="ownership-body-y1z2"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- Detail skeleton -->
+          <div data-id="145" id="detail-skeleton-a3b4" style="display:none;" class="space-y-4">
+            <div data-id="146" class="skeleton h-40 w-full"></div>
+            <div data-id="147" class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div data-id="148" class="skeleton h-24 w-full"></div>
+              <div data-id="149" class="skeleton h-24 w-full"></div>
+              <div data-id="150" class="skeleton h-24 w-full"></div>
+              <div data-id="151" class="skeleton h-24 w-full"></div>
+            </div>
+            <div data-id="152" class="skeleton h-20 w-full"></div>
+            <div data-id="153" class="skeleton h-48 w-full"></div>
+          </div>
+        </section>
+
+        <!-- Error/Rate Limit Banner -->
+        <div data-id="154" id="error-banner-c5d6" class="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 rounded-xl p-4 flex items-start gap-3" style="background:var(--card);border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,0.3);display:none;">
+          <i data-id="155" data-lucide="alert-triangle" class="w-5 h-5 shrink-0" style="color:#ffd700;"></i>
+          <div data-id="156" class="flex-1">
+            <p data-id="157" class="text-sm font-medium" id="error-msg-e7f8">Error occurred</p>
+            <p data-id="158" class="text-xs mt-1" style="color:var(--textsec);" id="error-detail-g9h0"></p>
+          </div>
+          <button data-id="159" id="error-close-i1j2" class="p-1 shrink-0"><i data-id="160" data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- Watchlist Panel -->
+    <div data-id="161" id="watchlist-panel-x2k1" class="overflow-y-auto" style="background:var(--card);border-left:1px solid var(--border);">
+      <div data-id="162" class="p-4 border-b flex items-center justify-between" style="border-color:var(--border);">
+        <h3 data-id="163" class="text-sm font-bold flex items-center gap-2"><i data-id="164" data-lucide="star" class="w-4 h-4" style="color:#ffd700;"></i> Watchlist</h3>
+        <button data-id="165" id="watchlist-close-l3m4" class="p-1 rounded-lg hover:bg-[#21262d]"><i data-id="166" data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div data-id="167" id="watchlist-items-n5o6" class="p-3 space-y-2">
+        <p data-id="168" class="text-xs text-center py-8" style="color:var(--textsec);">No stocks in watchlist. Click ⭐ on a stock to add it.</p>
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav data-id="169" class="bottom-nav items-center justify-around">
+      <button data-id="170" class="mob-tab-btn flex flex-col items-center gap-0.5 py-1 px-3 text-[10px] font-medium" data-tab="market" style="color:#00d4aa;">
+        <i data-id="171" data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        Market
+      </button>
+      <button data-id="172" class="mob-tab-btn flex flex-col items-center gap-0.5 py-1 px-3 text-[10px] font-medium" data-tab="sector" style="color:var(--textsec);">
+        <i data-id="173" data-lucide="grid-3x3" class="w-5 h-5"></i>
+        Sectors
+      </button>
+      <button data-id="174" class="mob-tab-btn flex flex-col items-center gap-0.5 py-1 px-3 text-[10px] font-medium" data-tab="detail" style="color:var(--textsec);">
+        <i data-id="175" data-lucide="candlestick-chart" class="w-5 h-5"></i>
+        Detail
+      </button>
+      <button data-id="176" class="mob-tab-btn flex flex-col items-center gap-0.5 py-1 px-3 text-[10px] font-medium" id="mob-watchlist-btn-p7q8" style="color:var(--textsec);">
+        <i data-id="177" data-lucide="star" class="w-5 h-5"></i>
+        Watch
+      </button>
+    </nav>
+
+    <footer data-id="178" class="py-6 text-center" style="color:var(--textsec);">
+      <p data-id="179" class="text-xs">Made by Copilot</p>
+    </footer>
+  </div>
+
+  <script>
+    // DOMContentLoaded fallback: apply background immediately to prevent white flash
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.style.background = '#0d1117';
+      document.body.style.color = '#e6edf3';
+    });
+
+    window.addEventListener('load', function() {
+
+    // Safe Lucide icon renderer
+    function reRenderIcons() {
+      if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+        try { lucide.createIcons(); } catch(e) { console.warn('Lucide icon render failed:', e); }
+      }
+    }
+
+    // Initial icon render
+    reRenderIcons();
+
+    // ─── STATE ────────────────────────────────────────────────────
+    let apiKey = localStorage.getItem('finnhub_api_key') || '';
+    let watchlist = JSON.parse(localStorage.getItem('growth_watchlist') || '[]');
+    let theme = localStorage.getItem('growth_theme') || 'dark';
+    let activeTab = 'market';
+    let marketData = [];
+    let sectorData = [];
+    let sortCol = 'symbol', sortDir = 'asc';
+    let flowFilter = 'all';
+    let autoRefresh = false;
+    let autoRefreshInterval = null;
+    let autoRefreshCountdown = 60;
+    let currentDetailSymbol = '';
+    let searchDebounce = null;
+    let sectorChart = null;
+    let intradayChart = null;
+    let fetchQueue = [];
+    let rateLimitRetryTimeout = null;
+    let watchlistOpen = false;
+
+    const MARKET_STOCKS = ['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA','BRK.B','JPM','JNJ','V','UNH','XOM','WMT','PG','MA','HD','CVX','AVGO','AMD'];
+    const SECTOR_ETFS = [
+      {symbol:'XLK',name:'Technology'},{symbol:'XLF',name:'Financials'},{symbol:'XLE',name:'Energy'},
+      {symbol:'XLV',name:'Healthcare'},{symbol:'XLY',name:'Consumer Discretionary'},{symbol:'XLP',name:'Consumer Staples'},
+      {symbol:'XLI',name:'Industrials'},{symbol:'XLRE',name:'Real Estate'},{symbol:'XLB',name:'Materials'},
+      {symbol:'XLC',name:'Communication Services'},{symbol:'XLU',name:'Utilities'}
+    ];
+
+    // ─── HELPERS ──────────────────────────────────────────────────
+    function $(id) { return document.getElementById(id); }
+    function fmt(n, d=2) { return n != null ? Number(n).toFixed(d) : '—'; }
+    function fmtPrice(n) { return n != null ? '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—'; }
+    function fmtMcap(n) {
+      if (!n) return '—';
+      if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'T';
+      if (n >= 1e3) return '$' + (n/1e3).toFixed(1) + 'B';
+      return '$' + n.toFixed(0) + 'M';
+    }
+    function pctColor(v) { return v > 0 ? 'var(--positive)' : v < 0 ? 'var(--negative)' : 'var(--textsec)'; }
+    function pctSign(v) { return v > 0 ? '+' : ''; }
+    function flowSignal(pct) {
+      if (pct > 1.5) return { label: 'INFLOW', cls: 'pill-green', icon: '🟢' };
+      if (pct < -1.5) return { label: 'OUTFLOW', cls: 'pill-red', icon: '🔴' };
+      return { label: 'NEUTRAL', cls: 'pill-gray', icon: '⚪' };
+    }
+
+    // ─── THEME ────────────────────────────────────────────────────
+    function applyTheme() {
+      if (theme === 'light') {
+        document.documentElement.classList.add('light-mode');
+        document.documentElement.style.setProperty('--bg', '#f0f4f8');
+        document.documentElement.style.setProperty('--card', '#ffffff');
+        document.documentElement.style.setProperty('--border', '#d1d9e0');
+        document.documentElement.style.setProperty('--text', '#1f2937');
+        document.documentElement.style.setProperty('--textsec', '#6b7280');
+      } else {
+        document.documentElement.classList.remove('light-mode');
+        document.documentElement.style.setProperty('--bg', '#0d1117');
+        document.documentElement.style.setProperty('--card', '#161b22');
+        document.documentElement.style.setProperty('--border', '#30363d');
+        document.documentElement.style.setProperty('--text', '#e6edf3');
+        document.documentElement.style.setProperty('--textsec', '#8b949e');
+      }
+      document.body.style.background = 'var(--bg)';
+      document.body.style.color = 'var(--text)';
+      localStorage.setItem('growth_theme', theme);
+    }
+
+    // ─── FINNHUB FETCH WITH RATE LIMIT ───────────────────────────
+    let requestCount = 0;
+    let requestResetTime = Date.now() + 60000;
+
+    async function finnhubFetch(endpoint) {
+      const now = Date.now();
+      if (now > requestResetTime) { requestCount = 0; requestResetTime = now + 60000; }
+      if (requestCount >= 55) {
+        const waitTime = requestResetTime - now;
+        showError('Rate limit approaching', 'Pausing requests. Resuming in ' + Math.ceil(waitTime/1000) + 's...');
+        await new Promise(function(r) { setTimeout(r, waitTime + 500); });
+        requestCount = 0;
+        requestResetTime = Date.now() + 60000;
+      }
+      requestCount++;
+      var url = 'https://finnhub.io/api/v1/' + endpoint + (endpoint.includes('?') ? '&' : '?') + 'token=' + apiKey;
+      try {
+        var res = await fetch(url);
+        if (res.status === 429) {
+          showError('Finnhub rate limit reached', 'Free tier allows 60 calls/min. Retrying in 30s...');
+          await new Promise(function(r) { setTimeout(r, 30000); });
+          requestCount = 0;
+          return finnhubFetch(endpoint);
+        }
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch(e) {
+        console.error('Fetch error:', endpoint, e);
+        return null;
+      }
+    }
+
+    // Batched fetcher with delay
+    async function batchFetch(endpoints, delayMs) {
+      delayMs = delayMs || 120;
+      var results = [];
+      for (var i = 0; i < endpoints.length; i++) {
+        results.push(await finnhubFetch(endpoints[i]));
+        if (i < endpoints.length - 1) await new Promise(function(r) { setTimeout(r, delayMs); });
+      }
+      return results;
+    }
+
+    // ─── ERROR DISPLAY ───────────────────────────────────────────
+    function showError(msg, detail) {
+      $('error-msg-e7f8').textContent = msg;
+      $('error-detail-g9h0').textContent = detail || '';
+      $('error-banner-c5d6').style.display = 'flex';
+      setTimeout(function() { if ($('error-banner-c5d6')) $('error-banner-c5d6').style.display = 'none'; }, 15000);
+    }
+
+    // ─── PROGRESS BAR ────────────────────────────────────────────
+    function showProgress(pct) {
+      $('global-progress-wrap').style.display = 'block';
+      $('global-progress-bar').style.width = pct + '%';
+      if (pct >= 100) setTimeout(function() { $('global-progress-wrap').style.display = 'none'; }, 500);
+    }
+
+    // ─── DATE/TIME ───────────────────────────────────────────────
+    function updateDateTime() {
+      var now = new Date();
+      var opts = { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true, timeZone:'America/Chicago' };
+      var el = $('datetime-display-i0j1');
+      if (el) el.textContent = now.toLocaleString('en-US', opts);
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // ─── API KEY MODAL ───────────────────────────────────────────
+    function showApiModal() { $('apikey-modal-k2f8').style.display = 'flex'; }
+    function hideApiModal() { $('apikey-modal-k2f8').style.display = 'none'; }
+    function showSettingsModal() {
+      $('settings-key-e5f6').value = apiKey;
+      $('settings-modal-a1b2').style.display = 'flex';
+    }
+    function hideSettingsModal() { $('settings-modal-a1b2').style.display = 'none'; }
+
+    $('apikey-submit-n7s3').addEventListener('click', function() {
+      var val = $('apikey-input-j4r2').value.trim();
+      if (!val) return;
+      apiKey = val;
+      localStorage.setItem('finnhub_api_key', apiKey);
+      hideApiModal();
+      initDashboard();
+    });
+    $('apikey-input-j4r2').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') $('apikey-submit-n7s3').click();
+    });
+
+    $('settings-btn-e6f7').addEventListener('click', showSettingsModal);
+    $('settings-close-c3d4').addEventListener('click', hideSettingsModal);
+    $('settings-save-g7h8').addEventListener('click', function() {
+      var val = $('settings-key-e5f6').value.trim();
+      if (!val) return;
+      apiKey = val;
+      localStorage.setItem('finnhub_api_key', apiKey);
+      hideSettingsModal();
+      loadMarketData();
+    });
+    $('settings-modal-a1b2').addEventListener('click', function(e) { if (e.target === $('settings-modal-a1b2')) hideSettingsModal(); });
+    $('apikey-modal-k2f8').addEventListener('click', function(e) { if (e.target === $('apikey-modal-k2f8') && apiKey) hideApiModal(); });
+
+    // ─── THEME TOGGLE ────────────────────────────────────────────
+    $('theme-toggle-x9y0').addEventListener('click', function() {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      applyTheme();
+      reRenderIcons();
+    });
+
+    // ─── TAB SWITCHING ───────────────────────────────────────────
+    function switchTab(tab) {
+      activeTab = tab;
+      ['market','sector','detail'].forEach(function(t) {
+        var el = $(('tab-' + t + (t==='market'?'-o5p6':t==='sector'?'-y5z6':'-e1f2')));
+        if (el) el.style.display = t === tab ? 'block' : 'none';
+      });
+      document.querySelectorAll('.tab-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.tab === tab);
+        b.style.color = b.dataset.tab === tab ? '#00d4aa' : 'var(--textsec)';
+        b.style.borderColor = b.dataset.tab === tab ? '#00d4aa' : 'transparent';
+      });
+      document.querySelectorAll('.mob-tab-btn').forEach(function(b) {
+        if (b.dataset.tab) {
+          b.style.color = b.dataset.tab === tab ? '#00d4aa' : 'var(--textsec)';
+        }
+      });
+      if (tab === 'sector' && sectorData.length === 0) loadSectorData();
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
+    });
+    document.querySelectorAll('.mob-tab-btn').forEach(function(btn) {
+      if (btn.dataset.tab) btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
+    });
+
+    // ─── SEARCH ──────────────────────────────────────────────────
+    function setupSearch(inputId, dropdownId) {
+      var input = $(inputId);
+      var dropdown = $(dropdownId);
+      if (!input || !dropdown) return;
+      input.addEventListener('input', function() {
+        clearTimeout(searchDebounce);
+        var q = input.value.trim();
+        if (q.length < 1) { dropdown.style.display = 'none'; return; }
+        searchDebounce = setTimeout(async function() {
+          var data = await finnhubFetch('search?q=' + encodeURIComponent(q));
+          if (!data || !data.result || data.result.length === 0) {
+            dropdown.innerHTML = '<div class="px-4 py-3 text-xs" style="color:var(--textsec);">No results found</div>';
+            dropdown.style.display = 'block';
+            return;
+          }
+          var filtered = data.result.filter(function(r) { return r.type === 'Common Stock' || r.type === 'ETP'; }).slice(0, 8);
+          dropdown.innerHTML = filtered.map(function(r) {
+            return '<div class="search-item flex items-center justify-between" data-symbol="' + r.symbol + '">' +
+              '<div>' +
+                '<span class="font-semibold text-sm" style="color:var(--text);">' + r.symbol + '</span>' +
+                '<span class="text-xs ml-2" style="color:var(--textsec);">' + r.description + '</span>' +
+              '</div>' +
+              '<i data-lucide="chevron-right" class="w-3 h-3" style="color:var(--textsec);"></i>' +
+            '</div>';
+          }).join('');
+          dropdown.style.display = 'block';
+          reRenderIcons();
+          dropdown.querySelectorAll('.search-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+              var sym = item.dataset.symbol;
+              dropdown.style.display = 'none';
+              input.value = '';
+              loadStockDetail(sym);
+              switchTab('detail');
+            });
+          });
+        }, 400);
+      });
+      input.addEventListener('blur', function() { setTimeout(function() { dropdown.style.display = 'none'; }, 200); });
+    }
+    setupSearch('search-input-p1q2', 'search-dropdown-9f3a');
+    setupSearch('search-input-mobile-k2l3', 'search-dropdown-mobile-m4n5');
+
+    // ─── MARKET FLOW (TAB 1) ─────────────────────────────────────
+    async function loadMarketData() {
+      $('market-skeleton-w3x4').style.display = 'block';
+      $('market-table-body-u1v2').innerHTML = '';
+      showProgress(5);
+      marketData = [];
+      var total = MARKET_STOCKS.length;
+      for (var i = 0; i < total; i++) {
+        var sym = MARKET_STOCKS[i];
+        var results = await Promise.all([
+          finnhubFetch('quote?symbol=' + sym),
+          finnhubFetch('stock/profile2?symbol=' + sym)
+        ]);
+        var quote = results[0];
+        var profile = results[1];
+        if (quote && profile) {
+          var change = quote.pc ? ((quote.c - quote.pc) / quote.pc) * 100 : 0;
+          marketData.push({
+            symbol: sym,
+            name: profile.name || sym,
+            price: quote.c,
+            change: change,
+            high: quote.h,
+            low: quote.l,
+            open: quote.o,
+            pc: quote.pc,
+            industry: profile.finnhubIndustry || '—',
+            marketCap: profile.marketCapitalization,
+            logo: profile.logo,
+            weburl: profile.weburl,
+            exchange: profile.exchange,
+            country: profile.country,
+            currency: profile.currency
+          });
+        }
+        showProgress(5 + ((i + 1) / total) * 80);
+        if (i < total - 1) await new Promise(function(r) { setTimeout(r, 120); });
+      }
+      showProgress(100);
+      $('market-skeleton-w3x4').style.display = 'none';
+      renderMarketTable();
+    }
+
+    function renderMarketTable() {
+      var data = marketData.slice();
+      // Filter
+      if (flowFilter === 'inflow') data = data.filter(function(d) { return d.change > 1.5; });
+      else if (flowFilter === 'outflow') data = data.filter(function(d) { return d.change < -1.5; });
+      else if (flowFilter === 'neutral') data = data.filter(function(d) { return d.change >= -1.5 && d.change <= 1.5; });
+      // Sort
+      data.sort(function(a, b) {
+        var va = a[sortCol], vb = b[sortCol];
+        if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb||'').toLowerCase(); }
+        if (va < vb) return sortDir === 'asc' ? -1 : 1;
+        if (va > vb) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+      // Summary
+      var inflow = marketData.filter(function(d) { return d.change > 1.5; }).length;
+      var outflow = marketData.filter(function(d) { return d.change < -1.5; }).length;
+      var neutral = marketData.filter(function(d) { return d.change >= -1.5 && d.change <= 1.5; }).length;
+      $('flow-summary-s9t0').innerHTML =
+        '<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(0,255,127,0.1);color:#00ff7f;">' +
+          '<span>🟢</span> ' + inflow + ' INFLOW' +
+        '</div>' +
+        '<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(255,77,77,0.1);color:#ff4d4d;">' +
+          '<span>🔴</span> ' + outflow + ' OUTFLOW' +
+        '</div>' +
+        '<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(139,148,158,0.1);color:#8b949e;">' +
+          '<span>⚪</span> ' + neutral + ' NEUTRAL' +
+        '</div>';
+      // Table body
+      var tbody = $('market-table-body-u1v2');
+      tbody.innerHTML = data.map(function(d) {
+        var fs = flowSignal(d.change);
+        var rangePct = d.high !== d.low ? ((d.price - d.low) / (d.high - d.low)) * 100 : 50;
+        return '<tr class="stock-row" data-symbol="' + d.symbol + '" style="border-bottom:1px solid var(--border);">' +
+          '<td class="px-4 py-3 font-semibold font-mono text-sm">' + d.symbol + '</td>' +
+          '<td class="px-4 py-3 text-xs hidden md:table-cell" style="color:var(--textsec);">' + d.name + '</td>' +
+          '<td class="px-4 py-3 text-right font-mono font-semibold text-sm">' + fmtPrice(d.price) + '</td>' +
+          '<td class="px-4 py-3 text-right font-mono font-semibold text-sm" style="color:' + pctColor(d.change) + ';">' + pctSign(d.change) + fmt(d.change) + '%</td>' +
+          '<td class="px-4 py-3 hidden lg:table-cell">' +
+            '<div class="flex items-center gap-2 text-[10px] font-mono" style="color:var(--textsec);">' +
+              '<span>' + fmtPrice(d.low) + '</span>' +
+              '<div class="flex-1 h-1.5 rounded-full relative" style="background:var(--border);">' +
+                '<div class="h-full rounded-full" style="width:' + rangePct + '%;background:linear-gradient(90deg,var(--negative),var(--positive));"></div>' +
+              '</div>' +
+              '<span>' + fmtPrice(d.high) + '</span>' +
+            '</div>' +
+          '</td>' +
+          '<td class="px-4 py-3 hidden xl:table-cell"><span class="text-[10px] px-2 py-0.5 rounded-full" style="background:rgba(0,212,170,0.1);color:#00d4aa;">' + d.industry + '</span></td>' +
+          '<td class="px-4 py-3 text-center"><span class="pill ' + fs.cls + '">' + fs.icon + ' ' + fs.label + '</span></td>' +
+        '</tr>';
+      }).join('');
+
+      // Row click handlers
+      tbody.querySelectorAll('.stock-row').forEach(function(row) {
+        row.addEventListener('click', function() {
+          loadStockDetail(row.dataset.symbol);
+          switchTab('detail');
+        });
+      });
+    }
+
+    // Sort handlers
+    document.querySelectorAll('th[data-sort]').forEach(function(th) {
+      th.addEventListener('click', function() {
+        var col = th.dataset.sort;
+        sortDir = (sortCol === col) ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+        sortCol = col;
+        renderMarketTable();
+      });
+    });
+
+    // Filter
+    $('flow-filter-q7r8').addEventListener('change', function(e) {
+      flowFilter = e.target.value;
+      renderMarketTable();
+    });
+
+    // ─── SECTOR FLOW (TAB 2) ─────────────────────────────────────
+    async function loadSectorData() {
+      $('sector-grid-a7b8').innerHTML = SECTOR_ETFS.map(function() { return '<div class="skeleton h-28 w-full rounded-2xl"></div>'; }).join('');
+      showProgress(10);
+      sectorData = [];
+      for (var i = 0; i < SECTOR_ETFS.length; i++) {
+        var etf = SECTOR_ETFS[i];
+        var quote = await finnhubFetch('quote?symbol=' + etf.symbol);
+        if (quote) {
+          var change = quote.pc ? ((quote.c - quote.pc) / quote.pc) * 100 : 0;
+          sectorData.push({ symbol: etf.symbol, name: etf.name, price: quote.c, change: change, high: quote.h, low: quote.l, open: quote.o, pc: quote.pc });
+        }
+        showProgress(10 + ((i + 1) / SECTOR_ETFS.length) * 70);
+        if (i < SECTOR_ETFS.length - 1) await new Promise(function(r) { setTimeout(r, 150); });
+      }
+      showProgress(100);
+      renderSectorGrid();
+      renderSectorChart();
+    }
+
+    function renderSectorGrid() {
+      $('sector-grid-a7b8').innerHTML = sectorData.map(function(d) {
+        var isPos = d.change > 0;
+        var mag = Math.min(Math.abs(d.change) / 3, 1);
+        var bgColor = isPos ? 'rgba(0,255,127,' + (0.08 + mag * 0.15) + ')' : d.change < 0 ? 'rgba(255,77,77,' + (0.08 + mag * 0.15) + ')' : 'rgba(139,148,158,0.08)';
+        var borderColor = isPos ? 'rgba(0,255,127,' + (0.2 + mag * 0.3) + ')' : d.change < 0 ? 'rgba(255,77,77,' + (0.2 + mag * 0.3) + ')' : 'var(--border)';
+        var pulseClass = Math.abs(d.change) > 2 ? (isPos ? 'pulse-green' : 'pulse-red') : '';
+        return '<div class="sector-card rounded-2xl p-4 ' + pulseClass + '" data-symbol="' + d.symbol + '" style="background:' + bgColor + ';border-color:' + borderColor + ';border:2px solid ' + borderColor + ';">' +
+          '<div class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:var(--textsec);">' + d.name + '</div>' +
+          '<div class="text-[10px] font-mono mb-2" style="color:var(--textsec);">' + d.symbol + '</div>' +
+          '<div class="font-mono font-bold text-lg" style="color:var(--text);">' + fmtPrice(d.price) + '</div>' +
+          '<div class="font-mono font-semibold text-sm mt-1" style="color:' + pctColor(d.change) + ';">' + pctSign(d.change) + fmt(d.change) + '%</div>' +
+        '</div>';
+      }).join('');
+
+      $('sector-grid-a7b8').querySelectorAll('.sector-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          loadStockDetail(card.dataset.symbol);
+          switchTab('detail');
+        });
+      });
+    }
+
+    function renderSectorChart() {
+      var sorted = sectorData.slice().sort(function(a, b) { return a.change - b.change; });
+      var ctx = $('sector-chart-c9d0').getContext('2d');
+      if (sectorChart) sectorChart.destroy();
+      var isDark = theme === 'dark';
+      sectorChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: sorted.map(function(d) { return d.name; }),
+          datasets: [{
+            label: '% Change',
+            data: sorted.map(function(d) { return d.change; }),
+            backgroundColor: sorted.map(function(d) { return d.change >= 0 ? 'rgba(0,255,127,0.7)' : 'rgba(255,77,77,0.7)'; }),
+            borderColor: sorted.map(function(d) { return d.change >= 0 ? '#00ff7f' : '#ff4d4d'; }),
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#161b22' : '#ffffff',
+              titleColor: isDark ? '#e6edf3' : '#1f2937',
+              bodyColor: isDark ? '#8b949e' : '#6b7280',
+              borderColor: isDark ? '#30363d' : '#d1d9e0',
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 10,
+              callbacks: {
+                label: function(ctx) { return (ctx.parsed.x >= 0 ? '+' : '') + ctx.parsed.x.toFixed(2) + '%'; }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: isDark ? 'rgba(48,54,61,0.4)' : 'rgba(209,217,224,0.4)' },
+              ticks: { color: isDark ? '#8b949e' : '#6b7280', font: { family: 'Courier New', size: 10 }, callback: function(v) { return v + '%'; } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: isDark ? '#e6edf3' : '#1f2937', font: { family: '-apple-system', size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ─── STOCK DETAIL (TAB 3) ────────────────────────────────────
+    async function loadStockDetail(symbol) {
+      currentDetailSymbol = symbol;
+      $('detail-empty-g3h4').style.display = 'none';
+      $('detail-content-i5j6').style.display = 'none';
+      $('detail-skeleton-a3b4').style.display = 'block';
+      $('detail-ownership-w9x0').style.display = 'none';
+
+      showProgress(10);
+      var results = await Promise.all([
+        finnhubFetch('quote?symbol=' + symbol),
+        finnhubFetch('stock/metric?symbol=' + symbol + '&metric=all'),
+        finnhubFetch('stock/profile2?symbol=' + symbol),
+        finnhubFetch('stock/ownership?symbol=' + symbol + '&limit=10')
+      ]);
+      var quote = results[0];
+      var metrics = results[1];
+      var profile = results[2];
+      var ownership = results[3];
+      showProgress(100);
+
+      $('detail-skeleton-a3b4').style.display = 'none';
+
+      if (!quote || !quote.c) {
+        showError('Failed to load data', 'Could not fetch data for ' + symbol + '. Check your API key or try again.');
+        $('detail-empty-g3h4').style.display = 'flex';
+        return;
+      }
+
+      $('detail-content-i5j6').style.display = 'block';
+
+      var c = quote.c, pc = quote.pc, h = quote.h, l = quote.l, o = quote.o;
+      var changePct = pc ? ((c - pc) / pc) * 100 : 0;
+      var changeDol = c - pc;
+      var name = profile && profile.name ? profile.name : symbol;
+      var logo = profile && profile.logo ? profile.logo : '';
+      var exchange = profile && profile.exchange ? profile.exchange : '';
+      var industry = profile && profile.finnhubIndustry ? profile.finnhubIndustry : '';
+      var weburl = profile && profile.weburl ? profile.weburl : '';
+      var country = profile && profile.country ? profile.country : '';
+      var currency = profile && profile.currency ? profile.currency : 'USD';
+      var mcap = (profile && profile.marketCapitalization) || (metrics && metrics.metric && metrics.metric.marketCapitalization);
+      var w52h = metrics && metrics.metric ? metrics.metric['52WeekHigh'] : null;
+      var w52l = metrics && metrics.metric ? metrics.metric['52WeekLow'] : null;
+      var beta = metrics && metrics.metric ? metrics.metric.beta : null;
+      var isWatched = watchlist.includes(symbol);
+
+      // Header Card
+      $('detail-header-k7l8').innerHTML =
+        '<div class="flex flex-col md:flex-row md:items-start gap-4">' +
+          '<div class="flex items-center gap-3 flex-1">' +
+            (logo ? '<div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden" style="background:var(--bg);border:1px solid var(--border);"><img src="' + logo + '" alt="' + name + '" class="w-10 h-10 object-contain" /></div>' : '') +
+            '<div>' +
+              '<div class="flex items-center gap-2 flex-wrap">' +
+                '<h2 class="text-xl md:text-2xl font-bold">' + name + '</h2>' +
+                '<span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-lg" style="background:rgba(0,212,170,0.15);color:#00d4aa;">' + symbol + '</span>' +
+                (exchange ? '<span class="text-[10px] px-2 py-0.5 rounded-lg" style="background:var(--bg);color:var(--textsec);border:1px solid var(--border);">' + exchange + '</span>' : '') +
+              '</div>' +
+              '<div class="flex items-center gap-2 mt-1 flex-wrap">' +
+                (industry ? '<span class="text-[10px] px-2 py-0.5 rounded-full" style="background:rgba(0,212,170,0.1);color:#00d4aa;">' + industry + '</span>' : '') +
+                (country ? '<span class="text-[10px]" style="color:var(--textsec);">📍 ' + country + '</span>' : '') +
+                (weburl ? '<a href="' + weburl + '" target="_blank" rel="noopener" class="text-[10px] underline" style="color:#00d4aa;">Website ↗</a>' : '') +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-end gap-3 md:text-right">' +
+            '<div>' +
+              '<div class="text-3xl md:text-4xl font-bold font-mono">' + fmtPrice(c) + '</div>' +
+              '<div class="flex items-center gap-2 mt-1 md:justify-end">' +
+                '<span class="font-mono font-semibold text-sm" style="color:' + pctColor(changePct) + ';">' + pctSign(changePct) + fmt(changeDol) + ' (' + pctSign(changePct) + fmt(changePct) + '%)</span>' +
+              '</div>' +
+            '</div>' +
+            '<button class="watchlist-star-btn p-2 rounded-lg transition hover:bg-[#21262d]" data-symbol="' + symbol + '" title="' + (isWatched ? 'Remove from watchlist' : 'Add to watchlist') + '">' +
+              '<i data-lucide="star" class="w-5 h-5" style="color:' + (isWatched ? '#ffd700' : 'var(--textsec)') + ';' + (isWatched ? 'fill:#ffd700;' : '') + '"></i>' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+
+      // Star button handler
+      $('detail-header-k7l8').querySelector('.watchlist-star-btn').addEventListener('click', function() {
+        toggleWatchlist(this.dataset.symbol);
+        loadStockDetail(this.dataset.symbol);
+      });
+
+      // Metrics
+      var betaLabel = beta > 1.5 ? 'High Volatility' : beta >= 0.8 ? 'Moderate' : beta != null ? 'Low Volatility' : '—';
+      var betaColor = beta > 1.5 ? '#ff4d4d' : beta >= 0.8 ? '#ffd700' : '#00ff7f';
+      var pctFrom52H = w52h ? ((c - w52h) / w52h * 100) : null;
+      var pctFrom52L = w52l ? ((c - w52l) / w52l * 100) : null;
+      $('detail-metrics-m9n0').innerHTML =
+        '<div class="rounded-xl p-4" style="background:var(--card);border:1px solid var(--border);">' +
+          '<div class="text-xs font-medium mb-1" style="color:var(--textsec);">📊 Market Cap</div>' +
+          '<div class="text-xl font-bold font-mono">' + fmtMcap(mcap) + '</div>' +
+        '</div>' +
+        '<div class="rounded-xl p-4" style="background:var(--card);border:1px solid var(--border);">' +
+          '<div class="text-xs font-medium mb-1" style="color:var(--textsec);">⚡ Beta</div>' +
+          '<div class="text-xl font-bold font-mono">' + (beta != null ? fmt(beta) : '—') + '</div>' +
+          '<div class="text-[10px] font-semibold" style="color:' + betaColor + ';">' + betaLabel + '</div>' +
+        '</div>' +
+        '<div class="rounded-xl p-4" style="background:var(--card);border:1px solid var(--border);">' +
+          '<div class="text-xs font-medium mb-1" style="color:var(--textsec);">📈 52-Week High</div>' +
+          '<div class="text-xl font-bold font-mono">' + fmtPrice(w52h) + '</div>' +
+          (pctFrom52H != null ? '<div class="text-[10px] font-mono" style="color:' + pctColor(pctFrom52H) + ';">' + pctSign(pctFrom52H) + fmt(pctFrom52H) + '% from current</div>' : '') +
+        '</div>' +
+        '<div class="rounded-xl p-4" style="background:var(--card);border:1px solid var(--border);">' +
+          '<div class="text-xs font-medium mb-1" style="color:var(--textsec);">📉 52-Week Low</div>' +
+          '<div class="text-xl font-bold font-mono">' + fmtPrice(w52l) + '</div>' +
+          (pctFrom52L != null ? '<div class="text-[10px] font-mono" style="color:' + pctColor(pctFrom52L) + ';">' + pctSign(pctFrom52L) + fmt(pctFrom52L) + '% from current</div>' : '') +
+        '</div>';
+
+      // 52-Week Range
+      if (w52h && w52l && w52h !== w52l) {
+        var posPct = ((c - w52l) / (w52h - w52l)) * 100;
+        $('detail-range-o1p2').innerHTML =
+          '<h3 class="text-sm font-semibold mb-3">52-Week Range</h3>' +
+          '<div class="flex items-center gap-3">' +
+            '<span class="text-xs font-mono" style="color:var(--negative);">' + fmtPrice(w52l) + '</span>' +
+            '<div class="flex-1">' +
+              '<div class="range-track">' +
+                '<div class="range-dot" style="left:' + Math.max(2, Math.min(98, posPct)) + '%;"></div>' +
+              '</div>' +
+            '</div>' +
+            '<span class="text-xs font-mono" style="color:var(--positive);">' + fmtPrice(w52h) + '</span>' +
+          '</div>' +
+          '<div class="text-center mt-2 text-xs font-mono" style="color:var(--textsec);">Current: ' + fmtPrice(c) + ' (' + fmt(posPct, 0) + '% of range)</div>';
+        $('detail-range-o1p2').style.display = 'block';
+      } else {
+        $('detail-range-o1p2').style.display = 'none';
+      }
+
+      // Money Flow Signal
+      if (w52h && w52l) {
+        var range = w52h - w52l;
+        var pos = (c - w52l) / range;
+        var signalText, signalColor, signalIcon;
+        if (pos > 0.7) { signalText = 'Strong Uptrend — Institutional Interest Likely HIGH'; signalColor = '#00ff7f'; signalIcon = 'trending-up'; }
+        else if (pos >= 0.5) { signalText = 'Mid-Range — Mixed Signals'; signalColor = '#ffd700'; signalIcon = 'minus'; }
+        else { signalText = 'Downtrend — Possible Institutional Exit'; signalColor = '#ff4d4d'; signalIcon = 'trending-down'; }
+        $('detail-signal-q3r4').innerHTML =
+          '<div class="flex items-center gap-4">' +
+            '<div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:' + signalColor + '22;">' +
+              '<i data-lucide="' + signalIcon + '" class="w-6 h-6" style="color:' + signalColor + ';"></i>' +
+            '</div>' +
+            '<div>' +
+              '<div class="text-xs font-medium uppercase tracking-wider mb-0.5" style="color:var(--textsec);">Money Flow Signal</div>' +
+              '<div class="text-sm font-bold" style="color:' + signalColor + ';">' + signalText + '</div>' +
+            '</div>' +
+          '</div>';
+        $('detail-signal-q3r4').style.display = 'block';
+      } else {
+        $('detail-signal-q3r4').style.display = 'none';
+      }
+
+      // Day Range Bar
+      if (h && l && h !== l) {
+        var openPct = ((o - l) / (h - l)) * 100;
+        var curPct = ((c - l) / (h - l)) * 100;
+        $('detail-dayrange-s5t6').innerHTML =
+          '<h3 class="text-sm font-semibold mb-3">Today\'s Range</h3>' +
+          '<div class="flex items-center gap-3 text-xs font-mono mb-2">' +
+            '<span style="color:var(--textsec);">L: ' + fmtPrice(l) + '</span>' +
+            '<div class="flex-1 h-2 rounded-full relative" style="background:var(--border);">' +
+              '<div class="absolute h-full rounded-full" style="left:0;width:' + curPct + '%;background:linear-gradient(90deg,rgba(255,77,77,0.5),rgba(0,212,170,0.5));"></div>' +
+              '<div class="absolute w-2 h-4 rounded-sm" style="left:' + openPct + '%;top:-4px;background:#ffd700;" title="Open: ' + fmtPrice(o) + '"></div>' +
+              '<div class="absolute w-3 h-5 rounded-sm" style="left:' + curPct + '%;top:-6px;background:#00d4aa;transform:translateX(-50%);" title="Current: ' + fmtPrice(c) + '"></div>' +
+            '</div>' +
+            '<span style="color:var(--textsec);">H: ' + fmtPrice(h) + '</span>' +
+          '</div>' +
+          '<div class="flex items-center gap-4 text-[10px]" style="color:var(--textsec);">' +
+            '<span><span class="inline-block w-2 h-2 rounded-sm mr-1" style="background:#ffd700;"></span>Open: ' + fmtPrice(o) + '</span>' +
+            '<span><span class="inline-block w-2 h-2 rounded-sm mr-1" style="background:#00d4aa;"></span>Current: ' + fmtPrice(c) + '</span>' +
+          '</div>';
+        $('detail-dayrange-s5t6').style.display = 'block';
+      } else {
+        $('detail-dayrange-s5t6').style.display = 'none';
+      }
+
+      // Intraday Simulated Chart
+      renderIntradayChart(o, h, l, c);
+
+      // Institutional Ownership
+      if (ownership && ownership.ownership && ownership.ownership.length > 0) {
+        var ownerBody = $('ownership-body-y1z2');
+        ownerBody.innerHTML = ownership.ownership.slice(0, 10).map(function(inst) {
+          var chg = inst.change;
+          return '<tr style="border-bottom:1px solid var(--border);">' +
+            '<td class="px-3 py-2 text-xs">' + (inst.name || '—') + '</td>' +
+            '<td class="px-3 py-2 text-xs text-right font-mono">' + (inst.share ? inst.share.toLocaleString() : '—') + '</td>' +
+            '<td class="px-3 py-2 text-xs text-right font-mono" style="color:' + pctColor(chg) + ';">' + (chg != null ? (pctSign(chg) + fmt(chg) + '%') : '—') + '</td>' +
+            '<td class="px-3 py-2 text-xs hidden md:table-cell" style="color:var(--textsec);">' + (inst.filingDate || '—') + '</td>' +
+          '</tr>';
+        }).join('');
+        $('detail-ownership-w9x0').style.display = 'block';
+      }
+
+      reRenderIcons();
+    }
+
+    function renderIntradayChart(open, high, low, close) {
+      var ctx = $('intraday-chart-u7v8').getContext('2d');
+      if (intradayChart) intradayChart.destroy();
+      // Simulate intraday curve from OHLC
+      var points = 78; // 6.5 hours, 5-min intervals
+      var data = [];
+      var labels = [];
+      var range = high - low;
+      for (var i = 0; i <= points; i++) {
+        var t = i / points;
+        var hour = Math.floor(9.5 + t * 6.5);
+        var min = Math.floor(((9.5 + t * 6.5) - hour) * 60);
+        labels.push(hour + ':' + min.toString().padStart(2, '0'));
+        // Smooth curve from open through high/low to close
+        var val;
+        if (close >= open) {
+          val = open + (close - open) * (t * t) - (range * 0.1 * Math.sin(t * Math.PI * 2.5)) + Math.random() * range * 0.02;
+          val = Math.max(low, Math.min(high, val));
+        } else {
+          val = open + (close - open) * t + range * 0.15 * Math.sin(t * Math.PI * 1.5) + Math.random() * range * 0.02;
+          val = Math.max(low, Math.min(high, val));
+        }
+        // Force start and end
+        if (i === 0) val = open;
+        if (i === points) val = close;
+        data.push(parseFloat(val.toFixed(2)));
+      }
+
+      var isDark = theme === 'dark';
+      var gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.parentElement.offsetHeight || 200);
+      var lineColor = close >= open ? '#00ff7f' : '#ff4d4d';
+      gradient.addColorStop(0, close >= open ? 'rgba(0,255,127,0.2)' : 'rgba(255,77,77,0.2)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+      intradayChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Price',
+            data: data,
+            borderColor: lineColor,
+            borderWidth: 2,
+            backgroundColor: gradient,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: lineColor,
+            pointHoverBorderColor: isDark ? '#161b22' : '#fff',
+            pointHoverBorderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: isDark ? '#161b22' : '#ffffff',
+              titleColor: isDark ? '#e6edf3' : '#1f2937',
+              bodyColor: isDark ? '#8b949e' : '#6b7280',
+              borderColor: isDark ? '#30363d' : '#d1d9e0',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: { label: function(ctx) { return '$' + ctx.parsed.y.toFixed(2); } }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: isDark ? 'rgba(48,54,61,0.3)' : 'rgba(209,217,224,0.3)' },
+              ticks: {
+                color: isDark ? '#8b949e' : '#6b7280',
+                font: { family: 'Courier New', size: 9 },
+                maxTicksLimit: 8,
+              }
+            },
+            y: {
+              grid: { color: isDark ? 'rgba(48,54,61,0.3)' : 'rgba(209,217,224,0.3)' },
+              ticks: {
+                color: isDark ? '#8b949e' : '#6b7280',
+                font: { family: 'Courier New', size: 10 },
+                callback: function(v) { return '$' + v.toFixed(0); }
+              }
+            }
+          },
+          interaction: { intersect: false, mode: 'index' },
+        }
+      });
+    }
+
+    // ─── WATCHLIST ────────────────────────────────────────────────
+    function toggleWatchlist(symbol) {
+      var idx = watchlist.indexOf(symbol);
+      if (idx > -1) { watchlist.splice(idx, 1); }
+      else { if (watchlist.length >= 10) { showError('Watchlist full', 'Maximum 10 stocks. Remove one first.'); return; } watchlist.push(symbol); }
+      localStorage.setItem('growth_watchlist', JSON.stringify(watchlist));
+      updateWatchlistUI();
+    }
+
+    function updateWatchlistUI() {
+      var countEl = $('watchlist-count-c4d5');
+      if (watchlist.length > 0) { countEl.textContent = watchlist.length; countEl.style.display = 'flex'; }
+      else { countEl.style.display = 'none'; }
+
+      var container = $('watchlist-items-n5o6');
+      if (watchlist.length === 0) {
+        container.innerHTML = '<p class="text-xs text-center py-8" style="color:var(--textsec);">No stocks in watchlist. Click ⭐ on a stock to add it.</p>';
+        return;
+      }
+      container.innerHTML = watchlist.map(function(sym) {
+        var md = marketData.find(function(d) { return d.symbol === sym; });
+        return '<div class="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer hover:bg-[#21262d] transition watchlist-item" data-symbol="' + sym + '" style="background:var(--bg);border:1px solid var(--border);">' +
+          '<div>' +
+            '<span class="font-mono font-semibold text-sm">' + sym + '</span>' +
+            (md ? '<span class="text-[10px] ml-1.5 font-mono" style="color:' + pctColor(md.change) + ';">' + pctSign(md.change) + fmt(md.change) + '%</span>' : '') +
+          '</div>' +
+          '<div class="flex items-center gap-1">' +
+            (md ? '<span class="font-mono text-xs">' + fmtPrice(md.price) + '</span>' : '') +
+            '<button class="watchlist-remove p-1 rounded-lg hover:bg-[#30363d]" data-symbol="' + sym + '"><i data-lucide="x" class="w-3 h-3" style="color:var(--textsec);"></i></button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      reRenderIcons();
+      container.querySelectorAll('.watchlist-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+          if (e.target.closest('.watchlist-remove')) return;
+          loadStockDetail(item.dataset.symbol);
+          switchTab('detail');
+        });
+      });
+      container.querySelectorAll('.watchlist-remove').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          toggleWatchlist(btn.dataset.symbol);
+        });
+      });
+    }
+
+    $('watchlist-toggle-a2b3').addEventListener('click', function() {
+      watchlistOpen = !watchlistOpen;
+      $('watchlist-panel-x2k1').classList.toggle('open', watchlistOpen);
+    });
+    $('watchlist-close-l3m4').addEventListener('click', function() {
+      watchlistOpen = false;
+      $('watchlist-panel-x2k1').classList.remove('open');
+    });
+    $('mob-watchlist-btn-p7q8').addEventListener('click', function() {
+      watchlistOpen = !watchlistOpen;
+      $('watchlist-panel-x2k1').classList.toggle('open', watchlistOpen);
+    });
+
+    // ─── AUTO REFRESH ────────────────────────────────────────────
+    $('auto-refresh-btn-r3s4').addEventListener('click', function() {
+      autoRefresh = !autoRefresh;
+      var dot = $('auto-refresh-dot-t5u6');
+      var timer = $('auto-refresh-timer-v7w8');
+      var btn = $('auto-refresh-btn-r3s4');
+      if (autoRefresh) {
+        btn.style.background = '#00d4aa';
+        dot.style.transform = 'translateX(16px)';
+        timer.style.display = 'inline';
+        autoRefreshCountdown = 60;
+        timer.textContent = '60s';
+        autoRefreshInterval = setInterval(function() {
+          autoRefreshCountdown--;
+          timer.textContent = autoRefreshCountdown + 's';
+          if (autoRefreshCountdown <= 0) {
+            autoRefreshCountdown = 60;
+            refreshAll();
+          }
+        }, 1000);
+      } else {
+        btn.style.background = '#30363d';
+        dot.style.transform = 'translateX(0)';
+        timer.style.display = 'none';
+        clearInterval(autoRefreshInterval);
+      }
+    });
+
+    function refreshAll() {
+      if (activeTab === 'market') loadMarketData();
+      else if (activeTab === 'sector') loadSectorData();
+      if (currentDetailSymbol && activeTab === 'detail') loadStockDetail(currentDetailSymbol);
+    }
+
+    $('refresh-btn-g8h9').addEventListener('click', refreshAll);
+
+    // ─── ERROR BANNER ────────────────────────────────────────────
+    $('error-close-i1j2').addEventListener('click', function() { $('error-banner-c5d6').style.display = 'none'; });
+
+    // ─── INIT ────────────────────────────────────────────────────
+    function initDashboard() {
+      $('app-main-wrap').style.display = 'block';
+      applyTheme();
+      updateWatchlistUI();
+      switchTab('market');
+      loadMarketData();
+      reRenderIcons();
+    }
+
+    // Boot
+    applyTheme();
+    if (!apiKey) {
+      showApiModal();
+    } else {
+      initDashboard();
+    }
+    reRenderIcons();
+
+    }); // end window.addEventListener('load')
+  </script>
+</body>
+</html>
