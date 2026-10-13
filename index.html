@@ -83,7 +83,7 @@
 
         <!-- Search -->
         <div data-id="20" style="position:relative;flex:1;min-width:200px;max-width:500px;">
-          <input data-id="21" type="text" id="searchInput" placeholder="🔍 Search stock name or ticker (e.g. Apple, AAPL)..." style="padding-left:14px;font-size:14px;" />
+          <input data-id="21" type="text" id="searchInput" placeholder="🔍 Search any stock ticker or company name..." style="padding-left:14px;font-size:14px;" />
           <div data-id="22" id="searchDropdown" class="search-dropdown hidden"></div>
         </div>
 
@@ -101,8 +101,8 @@
 
       <!-- Tab Bar (desktop) -->
       <div data-id="29" class="desktop-only" style="max-width:1400px;margin:10px auto 0;display:flex;gap:6px;">
-        <button data-id="30" class="tab-btn active" data-tab="market" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">📊 Market Flow</button>
-        <button data-id="31" class="tab-btn" data-tab="sector" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🌡️ Sector Flow</button>
+        <button data-id="30" class="tab-btn active" data-tab="market" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🚀 60 Growth Leaders</button>
+        <button data-id="31" class="tab-btn" data-tab="sector" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🌡️ Growth Sectors</button>
         <button data-id="32" class="tab-btn" data-tab="stock" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🔍 Stock Detail</button>
       </div>
     </header>
@@ -113,7 +113,7 @@
       <!-- MARKET FLOW TAB -->
       <div data-id="34" id="tab-market" class="tab-content active">
         <div data-id="35" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-          <h2 data-id="36" style="font-size:18px;font-weight:700;">Institutional Money Flow</h2>
+          <h2 data-id="36" style="font-size:18px;font-weight:700;">60 Growth Leaders — Money Flow</h2>
           <div data-id="37" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <div data-id="38" id="flowSummary" style="font-size:13px;color:#8b949e;"></div>
             <select data-id="39" id="flowFilter" style="width:auto;padding:6px 12px;font-size:13px;">
@@ -129,7 +129,7 @@
             <thead data-id="46">
               <tr data-id="47" style="border-bottom:1px solid #30363d;color:#8b949e;font-size:12px;">
                 <th data-id="48" id="sortSymbol" style="padding:12px 16px;text-align:left;cursor:pointer;">STOCK ↕</th>
-                <th data-id="49" style="padding:12px 16px;text-align:left;" class="desktop-only">COMPANY</th>
+                <th data-id="49" style="padding:12px 16px;text-align:left;" class="desktop-only">SECTOR</th>
                 <th data-id="50" id="sortPrice" style="padding:12px 16px;text-align:right;cursor:pointer;">PRICE ↕</th>
                 <th data-id="51" id="sortChange" style="padding:12px 16px;text-align:right;cursor:pointer;">CHANGE ↕</th>
                 <th data-id="52" style="padding:12px 16px;text-align:right;" class="desktop-only">DAY RANGE</th>
@@ -138,7 +138,7 @@
               </tr>
             </thead>
             <tbody data-id="55" id="marketTableBody">
-              <tr data-id="56"><td data-id="57" colspan="7" style="padding:40px;text-align:center;color:#8b949e;">Loading market data...</td></tr>
+              <tr data-id="56"><td data-id="57" colspan="7" style="padding:40px;text-align:center;color:#8b949e;">Loading growth leaders...</td></tr>
             </tbody>
           </table>
         </div>
@@ -146,7 +146,7 @@
 
       <!-- SECTOR FLOW TAB -->
       <div data-id="58" id="tab-sector" class="tab-content">
-        <h2 data-id="59" style="font-size:18px;font-weight:700;margin-bottom:16px;">Sector Money Flow — Heatmap</h2>
+        <h2 data-id="59" style="font-size:18px;font-weight:700;margin-bottom:16px;">Growth Sector Flow — Heatmap</h2>
         <div data-id="60" id="sectorGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:28px;">
           <div data-id="61" class="skeleton" style="height:100px;"></div>
           <div data-id="62" class="skeleton" style="height:100px;"></div>
@@ -156,7 +156,7 @@
           <div data-id="66" class="skeleton" style="height:100px;"></div>
         </div>
         <div data-id="67" class="card" style="padding:20px;">
-          <h3 data-id="68" style="font-size:15px;font-weight:600;margin-bottom:16px;color:#8b949e;">Sector Performance Today (%)</h3>
+          <h3 data-id="68" style="font-size:15px;font-weight:600;margin-bottom:16px;color:#8b949e;">Growth Sector Performance Today (%)</h3>
           <canvas data-id="69" id="sectorChart" style="max-height:280px;"></canvas>
         </div>
       </div>
@@ -165,8 +165,8 @@
       <div data-id="70" id="tab-stock" class="tab-content">
         <div data-id="71" id="stockPlaceholder" style="text-align:center;padding:80px 20px;">
           <div data-id="72" style="font-size:64px;margin-bottom:16px;">🔍</div>
-          <h2 data-id="73" style="font-size:20px;font-weight:600;color:#8b949e;margin-bottom:8px;">Select a Stock to Analyze</h2>
-          <p data-id="74" style="color:#30363d;font-size:14px;">Search in the header, or click any stock in Market Flow or Sector tabs</p>
+          <h2 data-id="73" style="font-size:20px;font-weight:600;color:#8b949e;margin-bottom:8px;">Select a Growth Stock to Analyze</h2>
+          <p data-id="74" style="color:#30363d;font-size:14px;">Search in the header, or click any stock in the Growth Leaders or Sector tabs</p>
         </div>
         <div data-id="75" id="stockDetail" class="hidden"></div>
       </div>
@@ -176,7 +176,7 @@
     <!-- Mobile bottom nav -->
     <nav data-id="76" class="mobile-nav" style="position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;display:none;justify-content:space-around;padding:10px 0;z-index:50;">
       <button data-id="77" data-mob="market" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#00d4aa;cursor:pointer;font-size:11px;font-weight:600;padding:4px 16px;">
-        <span data-id="78" style="font-size:22px;">📊</span>Market
+        <span data-id="78" style="font-size:22px;">🚀</span>Growth
       </button>
       <button data-id="79" data-mob="sector" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:11px;font-weight:600;padding:4px 16px;">
         <span data-id="80" style="font-size:22px;">🌡️</span>Sectors
@@ -208,67 +208,204 @@ document.addEventListener('DOMContentLoaded', function() {
   var currentTab = 'market';
   var watchlist = [];
 
-  // ── SAMPLE MARKET DATA (since external fetch is blocked) ──
-  var SAMPLE_MARKET = [
-    { symbol:'AAPL', name:'Apple Inc', price:178.52, change:1.82, high:179.90, low:176.20, pc:175.33, industry:'Technology' },
-    { symbol:'MSFT', name:'Microsoft Corp', price:412.35, change:0.94, high:414.10, low:408.50, pc:408.51, industry:'Technology' },
-    { symbol:'NVDA', name:'NVIDIA Corp', price:132.65, change:3.41, high:134.20, low:127.80, pc:128.28, industry:'Semiconductors' },
-    { symbol:'GOOGL', name:'Alphabet Inc', price:167.89, change:-0.52, high:169.40, low:166.10, pc:168.77, industry:'Technology' },
-    { symbol:'AMZN', name:'Amazon.com Inc', price:192.44, change:2.15, high:193.80, low:188.20, pc:188.39, industry:'Retail' },
-    { symbol:'META', name:'Meta Platforms', price:568.12, change:1.73, high:572.40, low:558.30, pc:558.45, industry:'Technology' },
-    { symbol:'TSLA', name:'Tesla Inc', price:248.30, change:-2.34, high:255.60, low:246.80, pc:254.25, industry:'Automobiles' },
-    { symbol:'JPM', name:'JPMorgan Chase', price:205.18, change:0.65, high:206.40, low:203.10, pc:203.85, industry:'Banking' },
-    { symbol:'JNJ', name:'Johnson & Johnson', price:158.42, change:-0.38, high:159.80, low:157.50, pc:159.02, industry:'Healthcare' },
-    { symbol:'V', name:'Visa Inc', price:281.65, change:0.92, high:283.20, low:278.90, pc:279.08, industry:'Financial Services' },
-    { symbol:'UNH', name:'UnitedHealth Group', price:562.80, change:-1.62, high:575.40, low:560.20, pc:572.05, industry:'Healthcare' },
-    { symbol:'XOM', name:'Exxon Mobil', price:108.24, change:1.95, high:109.40, low:106.10, pc:106.17, industry:'Energy' },
-    { symbol:'WMT', name:'Walmart Inc', price:172.38, change:0.48, high:173.60, low:171.10, pc:171.56, industry:'Retail' },
-    { symbol:'PG', name:'Procter & Gamble', price:165.92, change:-0.22, high:166.80, low:164.90, pc:166.28, industry:'Consumer Staples' },
-    { symbol:'MA', name:'Mastercard Inc', price:468.15, change:1.12, high:470.80, low:462.40, pc:462.97, industry:'Financial Services' },
-    { symbol:'HD', name:'Home Depot', price:362.40, change:-0.85, high:367.20, low:360.10, pc:365.50, industry:'Retail' },
-    { symbol:'CVX', name:'Chevron Corp', price:152.78, change:2.48, high:154.20, low:149.10, pc:149.08, industry:'Energy' },
-    { symbol:'AVGO', name:'Broadcom Inc', price:168.42, change:2.87, high:170.10, low:163.50, pc:163.72, industry:'Semiconductors' },
-    { symbol:'AMD', name:'Advanced Micro Devices', price:162.55, change:-1.78, high:167.30, low:161.40, pc:165.49, industry:'Semiconductors' },
-    { symbol:'NFLX', name:'Netflix Inc', price:698.20, change:1.34, high:702.50, low:688.40, pc:688.97, industry:'Entertainment' }
+  // ── 60 GROWTH-ORIENTED STOCKS across 8 growth sectors ──
+  var STOCKS = [
+    // Tech Growth (18)
+    'NVDA','MSFT','AAPL','GOOGL','META','AMD','AVGO','CRM','ADBE','NOW',
+    'SNOW','PLTR','NET','PANW','CRWD','DDOG','UBER','ORCL',
+    // Biotech & Health Innovation (8)
+    'LLY','ISRG','TMO','REGN','VRTX','DXCM','MRNA','ABBV',
+    // Consumer Growth (8)
+    'AMZN','TSLA','BKNG','CMG','LULU','MELI','ABNB','DECK',
+    // Fintech (6)
+    'V','MA','SQ','PYPL','COIN','NU',
+    // SaaS & Cloud (6)
+    'WDAY','HUBS','APP','DUOL','GTLB','MDB',
+    // Communication Growth (5)
+    'NFLX','SPOT','TTD','RBLX','PINS',
+    // Clean Energy (4)
+    'ENPH','FSLR','NEE','CEG',
+    // Industrial Growth (5)
+    'AXON','CPRT','ODFL','CSGP','GEHC'
   ];
 
-  // ── SAMPLE SECTOR DATA ──
+  // ── SECTOR MAPPING ──
+  function getSector(sym) {
+    var map = {
+      'NVDA':'Tech Growth','MSFT':'Tech Growth','AAPL':'Tech Growth','GOOGL':'Tech Growth','META':'Tech Growth','AMD':'Tech Growth','AVGO':'Tech Growth','CRM':'Tech Growth','ADBE':'Tech Growth','NOW':'Tech Growth','SNOW':'Tech Growth','PLTR':'Tech Growth','NET':'Tech Growth','PANW':'Tech Growth','CRWD':'Tech Growth','DDOG':'Tech Growth','UBER':'Tech Growth','ORCL':'Tech Growth',
+      'LLY':'Biotech & Health','ISRG':'Biotech & Health','TMO':'Biotech & Health','REGN':'Biotech & Health','VRTX':'Biotech & Health','DXCM':'Biotech & Health','MRNA':'Biotech & Health','ABBV':'Biotech & Health',
+      'AMZN':'Consumer Growth','TSLA':'Consumer Growth','BKNG':'Consumer Growth','CMG':'Consumer Growth','LULU':'Consumer Growth','MELI':'Consumer Growth','ABNB':'Consumer Growth','DECK':'Consumer Growth',
+      'V':'Fintech','MA':'Fintech','SQ':'Fintech','PYPL':'Fintech','COIN':'Fintech','NU':'Fintech',
+      'WDAY':'SaaS & Cloud','HUBS':'SaaS & Cloud','APP':'SaaS & Cloud','DUOL':'SaaS & Cloud','GTLB':'SaaS & Cloud','MDB':'SaaS & Cloud',
+      'NFLX':'Comm. Growth','SPOT':'Comm. Growth','TTD':'Comm. Growth','RBLX':'Comm. Growth','PINS':'Comm. Growth',
+      'ENPH':'Clean Energy','FSLR':'Clean Energy','NEE':'Clean Energy','CEG':'Clean Energy',
+      'AXON':'Industrial Growth','CPRT':'Industrial Growth','ODFL':'Industrial Growth','CSGP':'Industrial Growth','GEHC':'Industrial Growth'
+    };
+    return map[sym] || '—';
+  }
+
+  // ── SAMPLE QUOTE DATA for 60 growth stocks (simulates /quote endpoint) ──
+  var SAMPLE_QUOTES = {
+    'NVDA': { c:132.65, h:134.20, l:127.80, pc:128.28 },
+    'MSFT': { c:412.35, h:414.10, l:408.50, pc:408.51 },
+    'AAPL': { c:178.52, h:179.90, l:176.20, pc:175.33 },
+    'GOOGL': { c:167.89, h:169.40, l:166.10, pc:168.77 },
+    'META': { c:568.12, h:572.40, l:558.30, pc:558.45 },
+    'AMD': { c:162.55, h:167.30, l:161.40, pc:165.49 },
+    'AVGO': { c:168.42, h:170.10, l:163.50, pc:163.72 },
+    'CRM': { c:268.45, h:271.80, l:265.20, pc:267.10 },
+    'ADBE': { c:524.30, h:528.40, l:518.60, pc:520.80 },
+    'NOW': { c:782.40, h:790.20, l:775.60, pc:778.30 },
+    'SNOW': { c:148.35, h:152.80, l:146.20, pc:150.10 },
+    'PLTR': { c:24.82, h:25.40, l:24.20, pc:24.05 },
+    'NET': { c:82.15, h:83.90, l:80.60, pc:81.20 },
+    'PANW': { c:298.70, h:302.40, l:294.80, pc:296.50 },
+    'CRWD': { c:312.45, h:318.20, l:308.60, pc:305.80 },
+    'DDOG': { c:118.72, h:121.40, l:116.80, pc:115.90 },
+    'UBER': { c:72.45, h:73.80, l:71.20, pc:71.60 },
+    'ORCL': { c:142.80, h:144.20, l:140.60, pc:141.50 },
+    'LLY': { c:762.40, h:770.80, l:755.20, pc:748.60 },
+    'ISRG': { c:382.65, h:388.40, l:378.20, pc:376.40 },
+    'TMO': { c:548.20, h:555.40, l:542.80, pc:545.60 },
+    'REGN': { c:842.30, h:850.60, l:835.40, pc:838.90 },
+    'VRTX': { c:412.85, h:418.20, l:408.60, pc:406.40 },
+    'DXCM': { c:92.45, h:94.80, l:90.20, pc:93.80 },
+    'MRNA': { c:108.62, h:112.40, l:105.80, pc:110.20 },
+    'ABBV': { c:168.25, h:170.40, l:166.80, pc:167.50 },
+    'AMZN': { c:192.44, h:193.80, l:188.20, pc:188.39 },
+    'TSLA': { c:248.30, h:255.60, l:246.80, pc:254.25 },
+    'BKNG': { c:3485.20, h:3520.40, l:3448.60, pc:3460.80 },
+    'CMG': { c:2148.40, h:2175.80, l:2120.60, pc:2135.20 },
+    'LULU': { c:398.45, h:404.20, l:394.60, pc:392.80 },
+    'MELI': { c:1645.80, h:1672.40, l:1628.60, pc:1618.40 },
+    'ABNB': { c:148.65, h:152.40, l:146.20, pc:145.80 },
+    'DECK': { c:712.40, h:720.80, l:705.60, pc:698.20 },
+    'V': { c:281.65, h:283.20, l:278.90, pc:279.08 },
+    'MA': { c:468.15, h:470.80, l:462.40, pc:462.97 },
+    'SQ': { c:72.85, h:74.60, l:71.20, pc:70.40 },
+    'PYPL': { c:68.42, h:69.80, l:67.10, pc:69.20 },
+    'COIN': { c:182.65, h:188.40, l:178.20, pc:175.80 },
+    'NU': { c:12.48, h:12.80, l:12.10, pc:12.05 },
+    'WDAY': { c:262.45, h:268.20, l:258.60, pc:265.80 },
+    'HUBS': { c:582.40, h:590.80, l:575.60, pc:572.40 },
+    'APP': { c:88.65, h:90.40, l:86.80, pc:85.20 },
+    'DUOL': { c:198.42, h:202.80, l:195.60, pc:192.40 },
+    'GTLB': { c:58.25, h:59.80, l:57.10, pc:56.40 },
+    'MDB': { c:368.45, h:374.20, l:362.80, pc:372.60 },
+    'NFLX': { c:698.20, h:702.50, l:688.40, pc:688.97 },
+    'SPOT': { c:182.45, h:186.80, l:179.20, pc:178.40 },
+    'TTD': { c:88.62, h:90.40, l:86.80, pc:86.20 },
+    'RBLX': { c:42.85, h:44.20, l:41.60, pc:41.20 },
+    'PINS': { c:32.45, h:33.20, l:31.80, pc:31.60 },
+    'ENPH': { c:128.65, h:132.40, l:125.80, pc:130.20 },
+    'FSLR': { c:192.45, h:198.20, l:188.60, pc:186.40 },
+    'NEE': { c:72.45, h:73.20, l:71.80, pc:73.10 },
+    'CEG': { c:168.42, h:172.80, l:165.60, pc:162.40 },
+    'AXON': { c:242.65, h:248.40, l:238.80, pc:235.20 },
+    'CPRT': { c:48.85, h:49.60, l:48.10, pc:47.40 },
+    'ODFL': { c:408.45, h:414.20, l:404.60, pc:412.80 },
+    'CSGP': { c:82.42, h:84.20, l:81.10, pc:80.60 },
+    'GEHC': { c:78.65, h:80.20, l:77.40, pc:76.80 }
+  };
+
+  // ── COMPANY NAME LOOKUP ──
+  var COMPANY_NAMES = {
+    'NVDA':'NVIDIA Corp','MSFT':'Microsoft Corp','AAPL':'Apple Inc','GOOGL':'Alphabet Inc','META':'Meta Platforms','AMD':'Advanced Micro Devices','AVGO':'Broadcom Inc','CRM':'Salesforce Inc','ADBE':'Adobe Inc','NOW':'ServiceNow Inc',
+    'SNOW':'Snowflake Inc','PLTR':'Palantir Technologies','NET':'Cloudflare Inc','PANW':'Palo Alto Networks','CRWD':'CrowdStrike Holdings','DDOG':'Datadog Inc','UBER':'Uber Technologies','ORCL':'Oracle Corp',
+    'LLY':'Eli Lilly','ISRG':'Intuitive Surgical','TMO':'Thermo Fisher Scientific','REGN':'Regeneron Pharma','VRTX':'Vertex Pharmaceuticals','DXCM':'DexCom Inc','MRNA':'Moderna Inc','ABBV':'AbbVie Inc',
+    'AMZN':'Amazon.com Inc','TSLA':'Tesla Inc','BKNG':'Booking Holdings','CMG':'Chipotle Mexican Grill','LULU':'Lululemon Athletica','MELI':'MercadoLibre Inc','ABNB':'Airbnb Inc','DECK':'Deckers Outdoor',
+    'V':'Visa Inc','MA':'Mastercard Inc','SQ':'Block Inc','PYPL':'PayPal Holdings','COIN':'Coinbase Global','NU':'Nu Holdings',
+    'WDAY':'Workday Inc','HUBS':'HubSpot Inc','APP':'AppLovin Corp','DUOL':'Duolingo Inc','GTLB':'GitLab Inc','MDB':'MongoDB Inc',
+    'NFLX':'Netflix Inc','SPOT':'Spotify Technology','TTD':'The Trade Desk','RBLX':'Roblox Corp','PINS':'Pinterest Inc',
+    'ENPH':'Enphase Energy','FSLR':'First Solar Inc','NEE':'NextEra Energy','CEG':'Constellation Energy',
+    'AXON':'Axon Enterprise','CPRT':'Copart Inc','ODFL':'Old Dominion Freight','CSGP':'CoStar Group','GEHC':'GE HealthCare'
+  };
+
+  // ── EXTENDED SEARCH DATABASE ──
+  var SEARCH_DB = {};
+  STOCKS.forEach(function(sym) {
+    SEARCH_DB[sym] = { symbol: sym, description: COMPANY_NAMES[sym] || sym, type: 'Common Stock' };
+  });
+  var EXTRA_SEARCH = {
+    'RIVN':'Rivian Automotive','LCID':'Lucid Group','SOFI':'SoFi Technologies','ROKU':'Roku Inc',
+    'ZM':'Zoom Video Comm.','DOCU':'DocuSign Inc','ZS':'Zscaler Inc','OKTA':'Okta Inc','TWLO':'Twilio Inc',
+    'DASH':'DoorDash Inc','HOOD':'Robinhood Markets','AFRM':'Affirm Holdings',
+    'PATH':'UiPath Inc','GRAB':'Grab Holdings','SE':'Sea Limited','BABA':'Alibaba Group','JD':'JD.com Inc',
+    'PDD':'PDD Holdings','NIO':'NIO Inc','XPEV':'XPeng Inc','LI':'Li Auto Inc','TSM':'Taiwan Semiconductor',
+    'ASML':'ASML Holding','MRVL':'Marvell Technology','MU':'Micron Technology','LRCX':'Lam Research','AMAT':'Applied Materials',
+    'KLAC':'KLA Corp','ON':'ON Semiconductor','SWKS':'Skyworks Solutions','SMCI':'Super Micro Computer','ARM':'Arm Holdings',
+    'WBD':'Warner Bros Discovery','PARA':'Paramount Global','SNAP':'Snap Inc',
+    'MTCH':'Match Group','EA':'Electronic Arts','TTWO':'Take-Two Interactive',
+    'JPM':'JPMorgan Chase','BAC':'Bank of America','WFC':'Wells Fargo','GS':'Goldman Sachs',
+    'XOM':'Exxon Mobil','CVX':'Chevron Corp','WMT':'Walmart Inc','PG':'Procter & Gamble',
+    'KO':'Coca-Cola Co','PEP':'PepsiCo Inc','JNJ':'Johnson & Johnson','UNH':'UnitedHealth Group',
+    'HD':'Home Depot','CAT':'Caterpillar Inc','BA':'Boeing Co','DIS':'Walt Disney Co',
+    'INTC':'Intel Corp','QCOM':'Qualcomm Inc','TXN':'Texas Instruments','SHOP':'Shopify Inc'
+  };
+  Object.keys(EXTRA_SEARCH).forEach(function(sym) {
+    SEARCH_DB[sym] = { symbol: sym, description: EXTRA_SEARCH[sym], type: 'Common Stock' };
+  });
+
+  // ── SAMPLE SECTOR DATA (8 growth sectors) ──
   var SECTORS = [
-    { etf:'XLK', name:'Technology', emoji:'💻', price:214.80, change:1.45 },
-    { etf:'XLF', name:'Financials', emoji:'🏦', price:42.65, change:0.72 },
-    { etf:'XLE', name:'Energy', emoji:'⛽', price:88.32, change:2.18 },
-    { etf:'XLV', name:'Healthcare', emoji:'🏥', price:142.10, change:-0.94 },
-    { etf:'XLY', name:'Consumer Disc.', emoji:'🛍️', price:196.45, change:0.38 },
-    { etf:'XLP', name:'Consumer Stap.', emoji:'🛒', price:78.20, change:-0.15 },
-    { etf:'XLI', name:'Industrials', emoji:'🏭', price:118.92, change:0.82 },
-    { etf:'XLRE', name:'Real Estate', emoji:'🏠', price:41.38, change:-1.65 },
-    { etf:'XLB', name:'Materials', emoji:'⚗️', price:86.74, change:1.02 },
-    { etf:'XLC', name:'Comm. Services', emoji:'📡', price:82.56, change:0.55 },
-    { etf:'XLU', name:'Utilities', emoji:'💡', price:72.18, change:-0.42 }
+    { etf:'XLK', name:'Tech Growth', emoji:'💻', price:214.80, change:1.45 },
+    { etf:'XBI', name:'Biotech & Health', emoji:'🧬', price:98.65, change:0.88 },
+    { etf:'XLY', name:'Consumer Growth', emoji:'🛍️', price:196.45, change:0.38 },
+    { etf:'FINX', name:'Fintech', emoji:'💳', price:42.65, change:1.12 },
+    { etf:'WCLD', name:'SaaS & Cloud', emoji:'☁️', price:32.80, change:1.75 },
+    { etf:'XLC', name:'Comm. Growth', emoji:'📡', price:82.56, change:0.55 },
+    { etf:'QCLN', name:'Clean Energy', emoji:'⚡', price:48.92, change:-0.68 },
+    { etf:'ARKK', name:'Industrial Growth', emoji:'🏗️', price:52.40, change:0.92 }
   ];
 
   // ── STOCK DETAIL EXTENDED DATA ──
   var STOCK_DETAILS = {
-    'AAPL': { w52High: 199.62, w52Low: 143.90, beta: 1.24, mktCap: 2780000000000, exchange:'NASDAQ', country:'US', weburl:'apple.com' },
-    'MSFT': { w52High: 430.82, w52Low: 332.80, beta: 0.89, mktCap: 3060000000000, exchange:'NASDAQ', country:'US', weburl:'microsoft.com' },
     'NVDA': { w52High: 152.89, w52Low: 76.50, beta: 1.68, mktCap: 3250000000000, exchange:'NASDAQ', country:'US', weburl:'nvidia.com' },
+    'MSFT': { w52High: 430.82, w52Low: 332.80, beta: 0.89, mktCap: 3060000000000, exchange:'NASDAQ', country:'US', weburl:'microsoft.com' },
+    'AAPL': { w52High: 199.62, w52Low: 143.90, beta: 1.24, mktCap: 2780000000000, exchange:'NASDAQ', country:'US', weburl:'apple.com' },
     'GOOGL': { w52High: 182.30, w52Low: 130.67, beta: 1.05, mktCap: 2080000000000, exchange:'NASDAQ', country:'US', weburl:'abc.xyz' },
-    'AMZN': { w52High: 201.20, w52Low: 151.61, beta: 1.14, mktCap: 1990000000000, exchange:'NASDAQ', country:'US', weburl:'amazon.com' },
     'META': { w52High: 590.51, w52Low: 390.42, beta: 1.22, mktCap: 1440000000000, exchange:'NASDAQ', country:'US', weburl:'meta.com' },
-    'TSLA': { w52High: 299.29, w52Low: 182.10, beta: 2.05, mktCap: 790000000000, exchange:'NASDAQ', country:'US', weburl:'tesla.com' },
-    'JPM': { w52High: 215.40, w52Low: 168.20, beta: 1.08, mktCap: 590000000000, exchange:'NYSE', country:'US', weburl:'jpmorganchase.com' },
-    'JNJ': { w52High: 168.90, w52Low: 144.50, beta: 0.52, mktCap: 382000000000, exchange:'NYSE', country:'US', weburl:'jnj.com' },
-    'V': { w52High: 295.80, w52Low: 248.60, beta: 0.94, mktCap: 555000000000, exchange:'NYSE', country:'US', weburl:'visa.com' },
-    'UNH': { w52High: 610.40, w52Low: 445.80, beta: 0.72, mktCap: 520000000000, exchange:'NYSE', country:'US', weburl:'unitedhealthgroup.com' },
-    'XOM': { w52High: 118.50, w52Low: 95.20, beta: 0.82, mktCap: 440000000000, exchange:'NYSE', country:'US', weburl:'exxonmobil.com' },
-    'WMT': { w52High: 182.00, w52Low: 148.80, beta: 0.51, mktCap: 465000000000, exchange:'NYSE', country:'US', weburl:'walmart.com' },
-    'PG': { w52High: 172.40, w52Low: 141.60, beta: 0.42, mktCap: 390000000000, exchange:'NYSE', country:'US', weburl:'pg.com' },
-    'MA': { w52High: 490.20, w52Low: 398.60, beta: 1.10, mktCap: 435000000000, exchange:'NYSE', country:'US', weburl:'mastercard.com' },
-    'HD': { w52High: 395.60, w52Low: 310.20, beta: 1.02, mktCap: 362000000000, exchange:'NYSE', country:'US', weburl:'homedepot.com' },
-    'CVX': { w52High: 168.40, w52Low: 135.90, beta: 0.95, mktCap: 282000000000, exchange:'NYSE', country:'US', weburl:'chevron.com' },
-    'AVGO': { w52High: 185.20, w52Low: 120.80, beta: 1.32, mktCap: 780000000000, exchange:'NASDAQ', country:'US', weburl:'broadcom.com' },
     'AMD': { w52High: 187.40, w52Low: 120.50, beta: 1.58, mktCap: 262000000000, exchange:'NASDAQ', country:'US', weburl:'amd.com' },
-    'NFLX': { w52High: 725.80, w52Low: 542.10, beta: 1.35, mktCap: 305000000000, exchange:'NASDAQ', country:'US', weburl:'netflix.com' }
+    'AVGO': { w52High: 185.20, w52Low: 120.80, beta: 1.32, mktCap: 780000000000, exchange:'NASDAQ', country:'US', weburl:'broadcom.com' },
+    'CRM': { w52High: 298.80, w52Low: 215.40, beta: 1.18, mktCap: 260000000000, exchange:'NYSE', country:'US', weburl:'salesforce.com' },
+    'ADBE': { w52High: 570.80, w52Low: 432.60, beta: 1.25, mktCap: 240000000000, exchange:'NASDAQ', country:'US', weburl:'adobe.com' },
+    'NOW': { w52High: 820.40, w52Low: 620.80, beta: 1.15, mktCap: 158000000000, exchange:'NYSE', country:'US', weburl:'servicenow.com' },
+    'SNOW': { w52High: 192.40, w52Low: 120.80, beta: 1.45, mktCap: 48000000000, exchange:'NYSE', country:'US', weburl:'snowflake.com' },
+    'PLTR': { w52High: 28.60, w52Low: 14.80, beta: 1.62, mktCap: 52000000000, exchange:'NYSE', country:'US', weburl:'palantir.com' },
+    'NET': { w52High: 98.40, w52Low: 55.80, beta: 1.48, mktCap: 28000000000, exchange:'NYSE', country:'US', weburl:'cloudflare.com' },
+    'PANW': { w52High: 340.80, w52Low: 235.60, beta: 1.18, mktCap: 92000000000, exchange:'NASDAQ', country:'US', weburl:'paloaltonetworks.com' },
+    'CRWD': { w52High: 365.20, w52Low: 218.40, beta: 1.35, mktCap: 75000000000, exchange:'NASDAQ', country:'US', weburl:'crowdstrike.com' },
+    'DDOG': { w52High: 138.60, w52Low: 82.40, beta: 1.42, mktCap: 38000000000, exchange:'NASDAQ', country:'US', weburl:'datadoghq.com' },
+    'UBER': { w52High: 82.40, w52Low: 48.60, beta: 1.38, mktCap: 148000000000, exchange:'NYSE', country:'US', weburl:'uber.com' },
+    'ORCL': { w52High: 155.40, w52Low: 102.80, beta: 0.96, mktCap: 392000000000, exchange:'NYSE', country:'US', weburl:'oracle.com' },
+    'LLY': { w52High: 810.20, w52Low: 548.40, beta: 0.78, mktCap: 720000000000, exchange:'NYSE', country:'US', weburl:'lilly.com' },
+    'ISRG': { w52High: 420.60, w52Low: 298.80, beta: 1.02, mktCap: 135000000000, exchange:'NASDAQ', country:'US', weburl:'intuitive.com' },
+    'TMO': { w52High: 580.40, w52Low: 450.60, beta: 0.82, mktCap: 215000000000, exchange:'NYSE', country:'US', weburl:'thermofisher.com' },
+    'REGN': { w52High: 920.80, w52Low: 710.40, beta: 0.45, mktCap: 92000000000, exchange:'NASDAQ', country:'US', weburl:'regeneron.com' },
+    'VRTX': { w52High: 458.20, w52Low: 338.60, beta: 0.42, mktCap: 105000000000, exchange:'NASDAQ', country:'US', weburl:'vrtx.com' },
+    'AMZN': { w52High: 201.20, w52Low: 151.61, beta: 1.14, mktCap: 1990000000000, exchange:'NASDAQ', country:'US', weburl:'amazon.com' },
+    'TSLA': { w52High: 299.29, w52Low: 182.10, beta: 2.05, mktCap: 790000000000, exchange:'NASDAQ', country:'US', weburl:'tesla.com' },
+    'BKNG': { w52High: 3680.40, w52Low: 2850.60, beta: 1.28, mktCap: 128000000000, exchange:'NASDAQ', country:'US', weburl:'bookingholdings.com' },
+    'CMG': { w52High: 2380.60, w52Low: 1780.40, beta: 1.22, mktCap: 58000000000, exchange:'NYSE', country:'US', weburl:'chipotle.com' },
+    'LULU': { w52High: 462.80, w52Low: 312.40, beta: 1.35, mktCap: 48000000000, exchange:'NASDAQ', country:'US', weburl:'lululemon.com' },
+    'MELI': { w52High: 1820.40, w52Low: 1180.60, beta: 1.52, mktCap: 82000000000, exchange:'NASDAQ', country:'US', weburl:'mercadolibre.com' },
+    'V': { w52High: 295.80, w52Low: 248.60, beta: 0.94, mktCap: 555000000000, exchange:'NYSE', country:'US', weburl:'visa.com' },
+    'MA': { w52High: 490.20, w52Low: 398.60, beta: 1.10, mktCap: 435000000000, exchange:'NYSE', country:'US', weburl:'mastercard.com' },
+    'SQ': { w52High: 88.40, w52Low: 48.20, beta: 2.18, mktCap: 42000000000, exchange:'NYSE', country:'US', weburl:'block.xyz' },
+    'COIN': { w52High: 225.60, w52Low: 98.40, beta: 2.85, mktCap: 42000000000, exchange:'NASDAQ', country:'US', weburl:'coinbase.com' },
+    'NFLX': { w52High: 725.80, w52Low: 542.10, beta: 1.35, mktCap: 305000000000, exchange:'NASDAQ', country:'US', weburl:'netflix.com' },
+    'SPOT': { w52High: 218.40, w52Low: 128.60, beta: 1.55, mktCap: 35000000000, exchange:'NYSE', country:'US', weburl:'spotify.com' },
+    'ENPH': { w52High: 175.80, w52Low: 82.40, beta: 1.82, mktCap: 17000000000, exchange:'NASDAQ', country:'US', weburl:'enphase.com' },
+    'FSLR': { w52High: 232.40, w52Low: 142.80, beta: 1.48, mktCap: 20000000000, exchange:'NASDAQ', country:'US', weburl:'firstsolar.com' },
+    'NEE': { w52High: 82.40, w52Low: 55.80, beta: 0.65, mktCap: 148000000000, exchange:'NYSE', country:'US', weburl:'nexteraenergy.com' },
+    'CEG': { w52High: 198.40, w52Low: 108.60, beta: 1.12, mktCap: 52000000000, exchange:'NASDAQ', country:'US', weburl:'constellationenergy.com' },
+    'AXON': { w52High: 278.40, w52Low: 178.60, beta: 1.28, mktCap: 18000000000, exchange:'NASDAQ', country:'US', weburl:'axon.com' },
+    'CPRT': { w52High: 52.80, w52Low: 38.40, beta: 0.95, mktCap: 47000000000, exchange:'NASDAQ', country:'US', weburl:'copart.com' },
+    'ODFL': { w52High: 445.80, w52Low: 348.60, beta: 1.02, mktCap: 42000000000, exchange:'NASDAQ', country:'US', weburl:'odfl.com' },
+    'MDB': { w52High: 418.60, w52Low: 248.40, beta: 1.52, mktCap: 26000000000, exchange:'NASDAQ', country:'US', weburl:'mongodb.com' },
+    'HUBS': { w52High: 648.20, w52Low: 408.60, beta: 1.62, mktCap: 30000000000, exchange:'NYSE', country:'US', weburl:'hubspot.com' },
+    'ABNB': { w52High: 172.40, w52Low: 112.80, beta: 1.45, mktCap: 95000000000, exchange:'NASDAQ', country:'US', weburl:'airbnb.com' },
+    'DECK': { w52High: 758.40, w52Low: 488.60, beta: 1.18, mktCap: 20000000000, exchange:'NYSE', country:'US', weburl:'deckers.com' }
   };
 
   // ── DOM REFS ──
@@ -285,7 +422,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var refreshCountdown = document.getElementById('refreshCountdown');
 
   // ── API KEY FLOW ──
-  // Since external fetch is blocked by CSP, we accept the key but use sample data
   try {
     API_KEY = localStorage.getItem('finnhub_api_key') || '';
   } catch(e) { API_KEY = ''; }
@@ -378,13 +514,71 @@ document.addEventListener('DOMContentLoaded', function() {
     if (pct >= 100) setTimeout(function() { bar.classList.add('hidden'); }, 600);
   }
 
-  // ── MARKET FLOW ──
+  // ── MARKET FLOW (loads /quote per stock — 1 per second for Finnhub free tier) ──
   function loadMarketFlow() {
-    setProgress(10);
-    marketData = SAMPLE_MARKET.slice();
-    setProgress(100);
-    renderMarketTable();
-    renderFlowSummary();
+    setProgress(5);
+    var body = document.getElementById('marketTableBody');
+    body.innerHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:#8b949e;">📡 Loading 60 growth leaders — 1 per second (60 sec total)...</td></tr>';
+
+    marketData = [];
+    var loaded = 0;
+
+    function loadOne(i) {
+      if (i >= STOCKS.length) {
+        setProgress(100);
+        renderFlowSummary();
+        return;
+      }
+
+      var sym = STOCKS[i];
+      var quote = SAMPLE_QUOTES[sym];
+      if (quote && quote.c) {
+        var chg = quote.pc > 0 ? ((quote.c - quote.pc) / quote.pc) * 100 : 0;
+        marketData.push({
+          symbol: sym,
+          name: sym,
+          price: quote.c,
+          change: chg,
+          high: quote.h,
+          low: quote.l,
+          pc: quote.pc,
+          industry: getSector(sym)
+        });
+      } else {
+        marketData.push({
+          symbol: sym,
+          name: sym,
+          price: null,
+          change: 0,
+          high: null,
+          low: null,
+          pc: null,
+          industry: getSector(sym)
+        });
+      }
+      loaded++;
+
+      setProgress(5 + Math.round((loaded / STOCKS.length) * 88));
+
+      // Update loading message with count
+      if (loaded < STOCKS.length) {
+        var firstRow = body.querySelector('tr:first-child td');
+        if (firstRow && marketData.length === loaded && loaded < STOCKS.length) {
+          // Keep the loading message on top row if table hasn't rendered yet
+        }
+      }
+
+      renderMarketTable();
+
+      if (i + 1 < STOCKS.length) {
+        setTimeout(function() { loadOne(i + 1); }, 1000);
+      } else {
+        setProgress(100);
+        renderFlowSummary();
+      }
+    }
+
+    loadOne(0);
   }
 
   function renderMarketTable() {
@@ -405,20 +599,25 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    var remaining = STOCKS.length - marketData.length;
+    var loadingRow = '';
+    if (remaining > 0) {
+      loadingRow = '<tr><td colspan="7" style="padding:12px 16px;text-align:center;color:#8b949e;font-size:13px;">📡 Loading ' + marketData.length + ' / 60 growth stocks... (' + remaining + ' remaining)</td></tr>';
+    }
+
     body.innerHTML = rows.map(function(r) {
       var chgClass = r.change >= 0 ? 'positive' : 'negative';
       return '<tr class="stock-row" data-symbol="' + r.symbol + '" style="border-bottom:1px solid #21262d;">' +
         '<td style="padding:12px 16px;"><span style="font-weight:700;font-size:15px;">' + r.symbol + '</span></td>' +
-        '<td style="padding:12px 16px;color:#8b949e;font-size:13px;" class="desktop-only">' + (r.name || '—') + '</td>' +
+        '<td style="padding:12px 16px;color:#8b949e;font-size:13px;" class="desktop-only">' + (r.industry || '—') + '</td>' +
         '<td style="padding:12px 16px;text-align:right;" class="mono">' + fmtPrice(r.price) + '</td>' +
         '<td style="padding:12px 16px;text-align:right;" class="mono ' + chgClass + '">' + fmtChange(r.change) + '</td>' +
         '<td style="padding:12px 16px;text-align:right;font-size:12px;color:#8b949e;" class="desktop-only">' + fmtPrice(r.low) + ' – ' + fmtPrice(r.high) + '</td>' +
-        '<td style="padding:12px 16px;font-size:12px;color:#8b949e;" class="desktop-only">' + r.industry + '</td>' +
+        '<td style="padding:12px 16px;font-size:12px;color:#8b949e;" class="desktop-only">' + (r.industry || '—') + '</td>' +
         '<td style="padding:12px 16px;text-align:center;">' + flowSignalHTML(r.change) + '</td>' +
       '</tr>';
-    }).join('');
+    }).join('') + loadingRow;
 
-    // Attach click handlers
     body.querySelectorAll('.stock-row').forEach(function(row) {
       row.addEventListener('click', function() {
         loadStockDetail(row.dataset.symbol);
@@ -511,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ── STOCK DETAIL ──
+  // ── STOCK DETAIL (loads profile data only on click) ──
   function loadStockDetail(symbol) {
     switchTab('stock');
     document.getElementById('stockPlaceholder').classList.add('hidden');
@@ -524,14 +723,30 @@ document.addEventListener('DOMContentLoaded', function() {
     var sector = sectorData.find(function(s) { return s.etf === symbol; });
     var extra = STOCK_DETAILS[symbol];
 
+    // Get company name from profile data
+    var companyName = COMPANY_NAMES[symbol] || symbol;
+
     if (!stock && !sector) {
-      detail.innerHTML = '<div class="card" style="padding:40px;text-align:center;color:#ff4d4d;">⚠️ No data available for ' + symbol + '. Try a stock from the Market Flow tab.</div>';
+      // For stocks not in our 60 list (from search), show what we can
+      var searchEntry = SEARCH_DB[symbol];
+      if (searchEntry) {
+        companyName = searchEntry.description;
+        detail.innerHTML = '<div class="card" style="padding:40px;text-align:center;">' +
+          '<div style="font-size:48px;margin-bottom:12px;">📊</div>' +
+          '<h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">' + companyName + '</h2>' +
+          '<span style="background:#00d4aa22;color:#00d4aa;border:1px solid #00d4aa44;border-radius:6px;padding:4px 14px;font-size:15px;font-weight:700;">' + symbol + '</span>' +
+          '<p style="color:#8b949e;margin-top:16px;font-size:14px;">This stock is not in the tracked 60 growth leaders. Connect to Finnhub API for live data.</p>' +
+          '<p style="color:#30363d;margin-top:8px;font-size:12px;">⚠️ Sample data mode — only the 60 tracked growth stocks have quote data</p>' +
+        '</div>';
+      } else {
+        detail.innerHTML = '<div class="card" style="padding:40px;text-align:center;color:#ff4d4d;">⚠️ No data available for ' + symbol + '. Try a stock from the Growth Leaders tab.</div>';
+      }
       return;
     }
 
     var name, price, change, high, low, pc, industry;
     if (stock) {
-      name = stock.name; price = stock.price; change = stock.change;
+      name = companyName; price = stock.price; change = stock.change;
       high = stock.high; low = stock.low; pc = stock.pc; industry = stock.industry;
     } else {
       name = sector.name + ' ETF'; price = sector.price; change = sector.change;
@@ -708,30 +923,25 @@ document.addEventListener('DOMContentLoaded', function() {
     var q = searchInput.value.trim().toLowerCase();
     if (q.length < 1) { searchDropdown.classList.add('hidden'); return; }
     searchDebounce = setTimeout(function() {
-      // Search through sample data
-      var results = marketData.filter(function(s) {
-        return s.symbol.toLowerCase().indexOf(q) !== -1 || s.name.toLowerCase().indexOf(q) !== -1;
-      }).slice(0, 8);
-
-      // Also search sectors
-      var sectorResults = sectorData.filter(function(s) {
-        return s.etf.toLowerCase().indexOf(q) !== -1 || s.name.toLowerCase().indexOf(q) !== -1;
+      var allKeys = Object.keys(SEARCH_DB);
+      var results = allKeys.filter(function(sym) {
+        var entry = SEARCH_DB[sym];
+        return sym.toLowerCase().indexOf(q) !== -1 || entry.description.toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 8).map(function(sym) {
+        return SEARCH_DB[sym];
       });
 
-      var allResults = results.concat(sectorResults.map(function(s) {
-        return { symbol: s.etf, name: s.name + ' ETF', price: s.price, change: s.change };
-      })).slice(0, 8);
-
-      if (!allResults.length) {
-        searchDropdown.innerHTML = '<div style="padding:14px;color:#8b949e;font-size:13px;text-align:center;">No results found</div>';
+      if (!results.length) {
+        searchDropdown.innerHTML = '<div style="padding:14px;color:#8b949e;font-size:13px;text-align:center;">No results found for "' + searchInput.value.trim() + '"</div>';
         searchDropdown.classList.remove('hidden');
         return;
       }
 
-      searchDropdown.innerHTML = allResults.map(function(r) {
+      searchDropdown.innerHTML = results.map(function(r) {
+        var inList = STOCKS.indexOf(r.symbol) !== -1;
         return '<div class="search-item" data-symbol="' + r.symbol + '">' +
-          '<div><span style="font-weight:700;">' + r.symbol + '</span><span style="color:#8b949e;font-size:13px;margin-left:8px;">' + r.name + '</span></div>' +
-          '<span style="color:#8b949e;font-size:12px;">' + fmtPrice(r.price) + '</span>' +
+          '<div><span style="font-weight:700;">' + r.symbol + '</span><span style="color:#8b949e;font-size:13px;margin-left:8px;">' + r.description + '</span></div>' +
+          '<span style="font-size:11px;color:' + (inList ? '#00d4aa' : '#8b949e') + ';">' + (inList ? '● Tracked' : 'Search') + '</span>' +
         '</div>';
       }).join('');
       searchDropdown.classList.remove('hidden');
@@ -782,6 +992,7 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshSecondsLeft = 60;
         // Slightly randomize data on refresh to simulate live updates
         marketData.forEach(function(s) {
+          if (s.price == null) return;
           var delta = (Math.random() - 0.5) * 2;
           s.price = parseFloat((s.price + delta).toFixed(2));
           s.change = parseFloat((s.change + (Math.random() - 0.5) * 0.3).toFixed(2));
