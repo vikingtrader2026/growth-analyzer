@@ -220,6 +220,7 @@
     var etfQuotes = {};
     var etfLoadedCount = 0;
     var etfLoading = false;
+    var etfFetchTimestamps = {};
     var holdingsQuotes = {};
     var holdingsLoading = false;
     var currentTab = 'etf';
@@ -231,7 +232,7 @@
     var heatmapChartInstance = null;
     var searchDebounce = null;
 
-    // ── 45 ETFs ──
+    // ── 40 ETFs ──
     var ETF_DATA = {
       'SPY':  { name:'SPDR S&P 500 ETF',             cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','BRK-B','JPM','LLY','V','UNH','COST','XOM'] },
       'QQQ':  { name:'Invesco Nasdaq 100',            cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','COST','ADBE','AMD','PEP','NFLX','QCOM','INTU'] },
@@ -270,19 +271,14 @@
       'DGRO': { name:'iShares Dividend Growth ETF',   cat:'Dividend Growth', holdings:['MSFT','AAPL','JPM','V','JNJ','HD','COST','PG','ABBV','TXN','BMY','MRK','AMGN','WMT','CVX'] },
       'DGRW': { name:'WisdomTree Quality Dividend',   cat:'Dividend Growth', holdings:['MSFT','AAPL','NVDA','META','GOOGL','AMZN','JPM','UNH','V','PG','JNJ','ABBV','XOM','AVGO','HD'] },
       'NOBL': { name:'S&P 500 Dividend Aristocrats',  cat:'Dividend Growth', holdings:['ABBV','KO','PG','JNJ','MMM','ADP','WMT','CL','CINF','EMR','T','NUE','SWK','PBCT','GPC'] },
-      'SDY':  { name:'SPDR S&P Dividend ETF',         cat:'Dividend Growth', holdings:['ABBV','PG','KO','MMM','XOM','CVX','IBM','GPC','CINF','T','PBCT','NUE','SWK','LOW','BDX'] },
+      'SCHD': { name:'Schwab US Dividend Equity ETF',  cat:'Dividend Growth', holdings:['ABBV','AVGO','EOG','CVX','TXN','PEP','VLO','LMT','CSCO','MCD','AMGN','PFE','HD','MMM','KO'] },
       'DRIV': { name:'Global X Autonomous Vehicles',  cat:'AI & Robotics',   holdings:['TSLA','NVDA','GOOGL','QCOM','APTV','LEA','MBLY','LAZR','OUST','LIDR','INVZ','AEVA','VLDR','GM','F'] },
-      'ARKX': { name:'ARK Space Exploration',         cat:'ARK',             holdings:['TSLA','LMT','KTOS','RKLB','JOBY','ACHR','ASTR','SPCE','HON','TER','AVAV','BA','GNSS','RBC','NOC'] },
-      'IWD':  { name:'iShares Russell 1000 Value',    cat:'Value',           holdings:['BRK-B','JPM','XOM','JNJ','PG','CVX','HD','BAC','WFC','MRK','ABBV','KO','WMT','MCD','T'] },
-      'VNQ':  { name:'Vanguard Real Estate ETF',       cat:'Real Estate',     holdings:['EQIX','PLD','AMT','CCI','PSA','DLR','WELL','AVB','EQR','O','SPG','ARE','IRM','VICI','EXR'] },
-      'EEM':  { name:'iShares MSCI Emerging Markets',  cat:'International',   holdings:['TSM','BABA','BIDU','JD','PDD','NIO','VALE','ITUB','INFY','WIT','HDB','SE','LI','XPEV','BBD'] },
-      'XLE':  { name:'Energy Select Sector SPDR',      cat:'Energy',          holdings:['XOM','CVX','COP','EOG','SLB','PSX','MPC','OXY','VLO','HAL','DVN','BKR','APA','FANG','TRGP'] },
-      'XLF':  { name:'Financial Select Sector SPDR',   cat:'Financials',      holdings:['BRK-B','JPM','V','MA','BAC','WFC','GS','MS','SPGI','BLK','AXP','USB','PGR','TFC','CB'] }
+      'VTI':  { name:'Vanguard Total Stock Market',    cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','BRK-B','JPM','LLY','V','UNH','COST','XOM'] }
     };
 
     var ETF_TICKERS = Object.keys(ETF_DATA);
 
-    var CATEGORIES = ['All','Broad Growth','Tech & Semis','ARK','Healthcare','Consumer','Clean Energy','Cybersecurity','AI & Robotics','Cloud & SaaS','Fintech','Dividend Growth','Value','Real Estate','International','Energy','Financials'];
+    var CATEGORIES = ['All','Broad Growth','Tech & Semis','ARK','Healthcare','Consumer','Clean Energy','Cybersecurity','AI & Robotics','Cloud & SaaS','Fintech','Dividend Growth'];
 
     var CAT_COLORS = {
       'Broad Growth': '#3b82f6',
@@ -295,12 +291,7 @@
       'AI & Robotics': '#06b6d4',
       'Cloud & SaaS': '#a78bfa',
       'Fintech': '#eab308',
-      'Dividend Growth': '#6b7280',
-      'Value': '#d97706',
-      'Real Estate': '#ec4899',
-      'International': '#14b8a6',
-      'Energy': '#ea580c',
-      'Financials': '#6366f1'
+      'Dividend Growth': '#6b7280'
     };
 
     // ── SAMPLE ETF QUOTES ──
@@ -319,73 +310,9 @@
       'CLOU': { c:22.80, pc:22.40 },   'WCLD': { c:32.80, pc:32.20 },
       'FINX': { c:28.60, pc:28.20 },
       'VIG':  { c:182.40, pc:181.60 }, 'DGRO': { c:58.80, pc:58.40 },   'DGRW': { c:78.60, pc:78.20 },
-      'NOBL': { c:98.40, pc:98.80 },   'SDY':  { c:132.60, pc:133.20 },
-      'DRIV': { c:32.80, pc:32.40 },   'ARKX': { c:18.40, pc:18.60 },
-      'IWD':  { c:162.40, pc:161.80 }, 'VNQ':  { c:88.60, pc:87.90 },   'EEM':  { c:42.80, pc:42.40 },
-      'XLE':  { c:92.40, pc:91.80 },   'XLF':  { c:44.60, pc:44.20 }
+      'NOBL': { c:98.40, pc:98.80 },   'SCHD': { c:82.50, pc:82.20 },
+      'DRIV': { c:32.80, pc:32.40 },   'VTI':  { c:278.60, pc:276.40 }
     };
-
-    // ── SAMPLE STOCK QUOTES (for holdings) ──
-    var SAMPLE_STOCK_QUOTES = {
-      'AAPL':178.52,'MSFT':412.35,'NVDA':132.65,'AMZN':192.44,'META':568.12,'GOOGL':167.89,'TSLA':248.30,
-      'AVGO':168.42,'LLY':762.40,'V':281.65,'UNH':548.20,'ADBE':524.30,'AMD':162.55,'CRM':268.45,
-      'COST':612.40,'QCOM':168.20,'TXN':172.80,'ORCL':142.80,'INTC':42.60,'NOW':782.40,'AMAT':182.60,
-      'PANW':298.70,'ADI':192.40,'INTU':628.40,'SNPS':518.60,'CDNS':282.40,'ANSS':342.60,
-      'DDOG':118.72,'WDAY':262.45,'HUBS':582.40,'TEAM':242.60,'MDB':368.45,
-      'NFLX':698.20,'PEP':182.40,'COIN':182.65,'ROKU':68.40,'HOOD':18.60,'SHOP':82.40,
-      'RBLX':42.85,'DKNG':38.60,'SQ':72.85,'PYPL':68.42,'SPOT':182.45,'MELI':1645.80,
-      'TWLO':72.40,'PATH':22.60,'PLTR':24.82,'SNOW':148.35,
-      'ISRG':382.65,'JNJ':162.40,'ABBV':168.25,'MRK':118.60,'PFE':28.40,'TMO':548.20,
-      'ABT':112.40,'AMGN':298.60,'GILD':82.40,'REGN':842.30,'VRTX':412.85,'MRNA':108.62,
-      'HD':382.40,'MCD':298.60,'NKE':108.40,'SBUX':98.60,'LOW':252.40,'TJX':98.20,
-      'BKNG':3485.20,'CMG':2148.40,'ABNB':148.65,'GM':42.60,'F':12.40,
-      'CMCSA':42.80,'T':18.60,'VZ':38.40,'DIS':98.60,'TTWO':162.40,'EA':138.60,
-      'PINS':32.45,'SNAP':12.40,'MTCH':38.60,'WBD':12.80,
-      'ENPH':128.65,'NEE':72.45,'FSLR':192.45,'CEG':168.42,'RUN':18.60,'PLUG':4.80,
-      'ON':72.40,'CRWD':312.45,'FTNT':68.40,'ZS':218.60,'OKTA':92.40,'NET':82.15,
-      'IRBT':42.60,'TER':112.40,'BRKS':82.60,'KTOS':22.40,
-      'ZM':72.40,'BOX':28.60,
-      'MA':468.15,'NU':12.48,'SOFI':8.80,'AFRM':32.60,'UPST':28.40,
-      'FISV':152.40,'FIS':68.40,'GPN':128.60,'INTU':628.40,
-      'JPM':198.60,'PG':162.40,'KO':62.40,'WMT':168.40,'CVX':162.40,'XOM':112.40,
-      'IBM':188.60,'ADP':262.40,'CL':82.40,'MMM':108.40,'EMR':98.60,'BDX':248.60,
-      'SHW':342.60,'SPGI':448.60,'BMY':52.40,'NUE':172.40,
-      'LMT':468.40,'HON':212.40,'BA':228.60,'NOC':478.40,
-      'BRK-B':412.60,'MDT':82.40,'CVS':78.60,'CI':342.60,
-      'BIIB':228.60,'ILMN':142.40,'ALNY':198.60,'BMRN':92.40,
-      'LRCX':82.40,'KLAC':628.40,'MCHP':82.40,'MPWR':628.40,'MRVL':68.40,'SWKS':108.60,'NXPI':242.40,
-      'IPG':32.40,'ORLY':998.40,'EBAY':48.60,
-      'ICE':128.60,'NTAP':98.60,'GDOT':12.40,
-      'SEDG':22.40,'ARRY':18.60,'SHLS':8.40,'NXT':42.60,'NOVA':28.40,'DQ':38.60,'JKS':28.40,'ORA':78.60,'MAXN':12.40,'POWI':62.40,
-      'CSIQ':28.40,'SPWR':8.60,'HASI':32.60,'AY':22.40,'CWEN':28.60,'BEP':28.40,'TPIC':4.80,
-      'TENB':48.60,'S':22.40,'CYBR':282.40,'QLYS':162.40,'RDWR':22.40,'CHKP':168.40,'AKAM':118.60,'VRNS':48.60,'SAIL':28.40,'EVTC':38.60,
-      'ABB':42.60,'FANUY':18.40,'KION':42.60,'NNDM':2.40,'ZURN':32.40,'AXT':4.80,'VNET':8.60,'ACMR':18.40,'ONTO':132.40,'MKSI':128.60,
-      'NOVT':168.40,'ICAD':2.80,'SMTC':28.60,
-      'VEEV':218.60,'DOCN':38.60,'ESTC':98.60,'SUMO':8.40,
-      'ADYEN':1428.40,
-      'EXAS':72.40,'RXRX':8.60,'PACB':2.40,'NTLA':18.60,'IOVA':8.40,'CRSP':52.40,
-      'NVTA':2.80,'VCYT':32.40,'FATE':4.60,'BEAM':28.40,'EDIT':8.60,'SRPT':128.60,'TWST':42.60,'ARQT':22.40,
-      'RARE':42.60,'IONS':48.60,'ACAD':22.40,'NBIX':142.40,'RCKT':28.40,'KRYS':32.40,'PRTA':38.60,
-      'TRMB':62.40,'AVAV':188.60,'DDD':8.60,'AGCO':128.40,'KRTO':2.40,
-      'RKLB':8.60,'JOBY':6.40,'ACHR':8.20,'ASTR':2.40,'SPCE':2.60,'GNSS':12.40,'RBC':282.40,
-      'CINF':128.60,'SWK':92.40,'PBCT':18.60,'GPC':148.60,
-      'APTV':82.40,'LEA':132.40,'MBLY':22.40,'LAZR':4.60,'OUST':8.40,'LIDR':2.40,'INVZ':2.80,'AEVA':2.60,'VLDR':1.80,
-      'CDNA':12.40,'ITRI':118.60,'UNP':242.60,
-      'BAC':42.80,'WFC':58.20,
-      'EQIX':820.40,'PLD':112.40,'AMT':198.60,'CCI':98.40,'PSA':298.60,'DLR':142.40,'WELL':98.60,
-      'AVB':192.40,'EQR':68.40,'O':58.60,'SPG':148.40,'ARE':112.60,'IRM':82.40,'VICI':28.60,'EXR':148.40,
-      'TSM':142.60,'BABA':82.40,'BIDU':112.40,'JD':28.60,'PDD':142.40,'NIO':8.40,'VALE':12.60,
-      'ITUB':6.40,'INFY':18.60,'WIT':4.80,'HDB':58.40,'SE':68.60,'LI':22.40,'XPEV':12.60,'BBD':3.80,
-      'COP':118.40,'EOG':128.60,'SLB':42.40,'PSX':152.60,'MPC':168.40,'OXY':62.40,'VLO':172.60,
-      'HAL':38.40,'DVN':42.60,'BKR':32.40,'APA':22.60,'FANG':162.40,'TRGP':82.60,
-      'GS':468.40,'MS':98.60,'BLK':812.40,'AXP':242.60,'USB':42.40,'PGR':228.60,'TFC':38.40,'CB':248.60
-    };
-
-    // Previous close deltas for sample stocks
-    var STOCK_PC_DELTAS = {};
-    Object.keys(SAMPLE_STOCK_QUOTES).forEach(function(sym) {
-      STOCK_PC_DELTAS[sym] = SAMPLE_STOCK_QUOTES[sym] * (1 + (Math.random() - 0.5) * 0.04);
-    });
 
     // ── COMPANY NAMES ──
     var COMPANY_NAMES = {
@@ -444,66 +371,35 @@
       'ITRI':'Itron Inc','UNP':'Union Pacific',
       'CSIQ':'Canadian Solar','SPWR':'SunPower Corp','SHLS':'Shoals Technologies','NXT':'Nextracker Inc','NOVA':'Sunnova Energy',
       'DQ':'Daqo New Energy','JKS':'JinkoSolar','ORA':'Ormat Technologies','MAXN':'Maxeon Solar','POWI':'Power Integrations',
-      'HASI':'Hannon Armstrong','AY':'Atlantica Sustainable','CWEN':'Clearway Energy','BEP':'Brookfield Renewable','TPIC':'TPI Composites',
+      'HASI':'Hannon Armstrong','AY':'Atlantica Sustainable','TPIC':'TPI Composites',
       'KRTO':'Kirotech','RNECY':'ReneSola','VWSYF':'Vestas Wind Systems','SAIL':'SailPoint Technologies',
-      'BAC':'Bank of America','WFC':'Wells Fargo & Co',
-      'EQIX':'Equinix Inc','PLD':'Prologis Inc','AMT':'American Tower Corp','CCI':'Crown Castle Inc',
-      'PSA':'Public Storage','DLR':'Digital Realty Trust','WELL':'Welltower Inc','AVB':'AvalonBay Communities',
-      'EQR':'Equity Residential','O':'Realty Income Corp','SPG':'Simon Property Group',
-      'ARE':'Alexandria Real Estate','IRM':'Iron Mountain Inc','VICI':'VICI Properties','EXR':'Extra Space Storage',
-      'TSM':'Taiwan Semiconductor Mfg','BABA':'Alibaba Group Holding','BIDU':'Baidu Inc','JD':'JD.com Inc',
-      'PDD':'PDD Holdings','NIO':'NIO Inc','VALE':'Vale S.A.','ITUB':'Itau Unibanco Holding',
-      'INFY':'Infosys Ltd','WIT':'Wipro Ltd','HDB':'HDFC Bank Ltd','SE':'Sea Limited',
-      'LI':'Li Auto Inc','XPEV':'XPeng Inc','BBD':'Banco Bradesco S.A.',
-      'COP':'ConocoPhillips','EOG':'EOG Resources','SLB':'SLB (Schlumberger)','PSX':'Phillips 66',
-      'MPC':'Marathon Petroleum','OXY':'Occidental Petroleum','VLO':'Valero Energy',
-      'HAL':'Halliburton Co','DVN':'Devon Energy','BKR':'Baker Hughes Co','APA':'APA Corp',
-      'FANG':'Diamondback Energy','TRGP':'Targa Resources Corp',
-      'GS':'Goldman Sachs Group','MS':'Morgan Stanley','BLK':'BlackRock Inc',
-      'AXP':'American Express Co','USB':'U.S. Bancorp','PGR':'Progressive Corp',
-      'TFC':'Truist Financial Corp','CB':'Chubb Ltd'
+      'SAP':'SAP SE','BIDU':'Baidu Inc',
+      'SCHD':'Schwab US Dividend Equity ETF','VTI':'Vanguard Total Stock Market',
+      'EOG':'EOG Resources','VLO':'Valero Energy','CSCO':'Cisco Systems'
     };
 
-    // ── STOCK DETAILS ──
-    var STOCK_DETAILS = {
-      'NVDA': { w52High:152.89,w52Low:76.50,beta:1.68,mktCap:3250000000000,exchange:'NASDAQ',country:'US',weburl:'nvidia.com' },
-      'MSFT': { w52High:430.82,w52Low:332.80,beta:0.89,mktCap:3060000000000,exchange:'NASDAQ',country:'US',weburl:'microsoft.com' },
-      'AAPL': { w52High:199.62,w52Low:143.90,beta:1.24,mktCap:2780000000000,exchange:'NASDAQ',country:'US',weburl:'apple.com' },
-      'GOOGL':{ w52High:182.30,w52Low:130.67,beta:1.05,mktCap:2080000000000,exchange:'NASDAQ',country:'US',weburl:'abc.xyz' },
-      'META': { w52High:590.51,w52Low:390.42,beta:1.22,mktCap:1440000000000,exchange:'NASDAQ',country:'US',weburl:'meta.com' },
-      'AMZN': { w52High:201.20,w52Low:151.61,beta:1.14,mktCap:1990000000000,exchange:'NASDAQ',country:'US',weburl:'amazon.com' },
-      'TSLA': { w52High:299.29,w52Low:182.10,beta:2.05,mktCap:790000000000,exchange:'NASDAQ',country:'US',weburl:'tesla.com' },
-      'AVGO': { w52High:185.20,w52Low:120.80,beta:1.32,mktCap:780000000000,exchange:'NASDAQ',country:'US',weburl:'broadcom.com' },
-      'V':    { w52High:295.80,w52Low:248.60,beta:0.94,mktCap:555000000000,exchange:'NYSE',country:'US',weburl:'visa.com' },
-      'MA':   { w52High:490.20,w52Low:398.60,beta:1.10,mktCap:435000000000,exchange:'NYSE',country:'US',weburl:'mastercard.com' },
-      'LLY':  { w52High:810.20,w52Low:548.40,beta:0.78,mktCap:720000000000,exchange:'NYSE',country:'US',weburl:'lilly.com' },
-      'NFLX': { w52High:725.80,w52Low:542.10,beta:1.35,mktCap:305000000000,exchange:'NASDAQ',country:'US',weburl:'netflix.com' },
-      'CRM':  { w52High:298.80,w52Low:215.40,beta:1.18,mktCap:260000000000,exchange:'NYSE',country:'US',weburl:'salesforce.com' },
-      'AMD':  { w52High:187.40,w52Low:120.50,beta:1.58,mktCap:262000000000,exchange:'NASDAQ',country:'US',weburl:'amd.com' },
-      'ADBE': { w52High:570.80,w52Low:432.60,beta:1.25,mktCap:240000000000,exchange:'NASDAQ',country:'US',weburl:'adobe.com' },
-      'CRWD': { w52High:365.20,w52Low:218.40,beta:1.35,mktCap:75000000000,exchange:'NASDAQ',country:'US',weburl:'crowdstrike.com' },
-      'PANW': { w52High:340.80,w52Low:235.60,beta:1.18,mktCap:92000000000,exchange:'NASDAQ',country:'US',weburl:'paloaltonetworks.com' },
-      'COIN': { w52High:225.60,w52Low:98.40,beta:2.85,mktCap:42000000000,exchange:'NASDAQ',country:'US',weburl:'coinbase.com' },
-      'SQ':   { w52High:88.40,w52Low:48.20,beta:2.18,mktCap:42000000000,exchange:'NYSE',country:'US',weburl:'block.xyz' },
-      'ISRG': { w52High:420.60,w52Low:298.80,beta:1.02,mktCap:135000000000,exchange:'NASDAQ',country:'US',weburl:'intuitive.com' },
-      'NOW':  { w52High:820.40,w52Low:620.80,beta:1.15,mktCap:158000000000,exchange:'NYSE',country:'US',weburl:'servicenow.com' },
-      'DDOG': { w52High:138.60,w52Low:82.40,beta:1.42,mktCap:38000000000,exchange:'NASDAQ',country:'US',weburl:'datadoghq.com' },
-      'SNOW': { w52High:192.40,w52Low:120.80,beta:1.45,mktCap:48000000000,exchange:'NYSE',country:'US',weburl:'snowflake.com' },
-      'PLTR': { w52High:28.60,w52Low:14.80,beta:1.62,mktCap:52000000000,exchange:'NYSE',country:'US',weburl:'palantir.com' },
-      'NET':  { w52High:98.40,w52Low:55.80,beta:1.48,mktCap:28000000000,exchange:'NYSE',country:'US',weburl:'cloudflare.com' },
-      'SPOT': { w52High:218.40,w52Low:128.60,beta:1.55,mktCap:35000000000,exchange:'NYSE',country:'US',weburl:'spotify.com' },
-      'MELI': { w52High:1820.40,w52Low:1180.60,beta:1.52,mktCap:82000000000,exchange:'NASDAQ',country:'US',weburl:'mercadolibre.com' },
-      'BKNG': { w52High:3680.40,w52Low:2850.60,beta:1.28,mktCap:128000000000,exchange:'NASDAQ',country:'US',weburl:'bookingholdings.com' },
-      'JPM':  { w52High:212.40,w52Low:158.60,beta:1.12,mktCap:560000000000,exchange:'NYSE',country:'US',weburl:'jpmorganchase.com' },
-      'HD':   { w52High:405.60,w52Low:298.40,beta:1.08,mktCap:362000000000,exchange:'NYSE',country:'US',weburl:'homedepot.com' },
-      'UNH':  { w52High:580.40,w52Low:428.60,beta:0.72,mktCap:512000000000,exchange:'NYSE',country:'US',weburl:'unitedhealthgroup.com' },
-      'COST': { w52High:648.20,w52Low:498.60,beta:0.68,mktCap:272000000000,exchange:'NASDAQ',country:'US',weburl:'costco.com' },
-      'ENPH': { w52High:175.80,w52Low:82.40,beta:1.82,mktCap:17000000000,exchange:'NASDAQ',country:'US',weburl:'enphase.com' },
-      'FSLR': { w52High:232.40,w52Low:142.80,beta:1.48,mktCap:20000000000,exchange:'NASDAQ',country:'US',weburl:'firstsolar.com' },
-      'MDB':  { w52High:418.60,w52Low:248.40,beta:1.52,mktCap:26000000000,exchange:'NASDAQ',country:'US',weburl:'mongodb.com' },
-      'HUBS': { w52High:648.20,w52Low:408.60,beta:1.62,mktCap:30000000000,exchange:'NYSE',country:'US',weburl:'hubspot.com' },
-      'WDAY': { w52High:292.40,w52Low:218.60,beta:1.28,mktCap:68000000000,exchange:'NASDAQ',country:'US',weburl:'workday.com' }
-    };
+    // ── FINNHUB API HELPER ──
+    function finnhub(path) {
+      return new Promise(function(resolve, reject) {
+        var url = 'https://finnhub.io/api/v1' + path + (path.indexOf('?') !== -1 ? '&' : '?') + 'token=' + API_KEY;
+        fetch(url).then(function(r) {
+          if (!r.ok) throw new Error('API error ' + r.status);
+          return r.json();
+        }).then(resolve).catch(reject);
+      });
+    }
+
+    function delay(ms) {
+      return new Promise(function(resolve) { setTimeout(resolve, ms); });
+    }
+
+    function getTimestamp() {
+      var now = new Date();
+      var h = String(now.getHours()).padStart(2, '0');
+      var m = String(now.getMinutes()).padStart(2, '0');
+      var s = String(now.getSeconds()).padStart(2, '0');
+      return h + ':' + m + ':' + s;
+    }
 
     // ── SEARCH DB ──
     var SEARCH_DB = {};
@@ -622,9 +518,21 @@
       if (etfLoading) return;
       etfLoading = true;
       etfQuotes = {};
+      etfFetchTimestamps = {};
       etfLoadedCount = 0;
       setProgress(5);
       renderETFGridSkeletons();
+
+      function tryFinnhub(sym) {
+        return finnhub('/quote?symbol=' + sym).then(function(q) {
+          if (q && typeof q.c === 'number' && q.c > 0) {
+            return q;
+          }
+          return null;
+        }).catch(function() {
+          return null;
+        });
+      }
 
       function loadOne(i) {
         if (i >= ETF_TICKERS.length) {
@@ -635,18 +543,23 @@
           return;
         }
         var sym = ETF_TICKERS[i];
-        var q = SAMPLE_ETF_QUOTES[sym];
-        if (q) {
-          var chg = q.pc > 0 ? ((q.c - q.pc) / q.pc) * 100 : 0;
-          etfQuotes[sym] = { price: q.c, change: chg, pc: q.pc };
-        } else {
-          etfQuotes[sym] = { price: null, change: 0, pc: null };
-        }
-        etfLoadedCount++;
-        setProgress(5 + Math.round((etfLoadedCount / ETF_TICKERS.length) * 90));
-        document.getElementById('etfProgress-q3r4').textContent = 'Loading ETFs... ' + etfLoadedCount + ' / 40';
-        renderETFGrid();
-        setTimeout(function() { loadOne(i + 1); }, 200);
+
+        tryFinnhub(sym).then(function(liveQ) {
+          var q = liveQ || SAMPLE_ETF_QUOTES[sym];
+          if (q) {
+            var chg = q.pc > 0 ? ((q.c - q.pc) / q.pc) * 100 : 0;
+            etfQuotes[sym] = { price: q.c, change: chg, pc: q.pc };
+            etfFetchTimestamps[sym] = getTimestamp();
+          } else {
+            etfQuotes[sym] = { price: null, change: 0, pc: null };
+            etfFetchTimestamps[sym] = getTimestamp();
+          }
+          etfLoadedCount++;
+          setProgress(5 + Math.round((etfLoadedCount / ETF_TICKERS.length) * 90));
+          document.getElementById('etfProgress-q3r4').textContent = 'Loading ETFs... ' + etfLoadedCount + ' / 40';
+          renderETFGrid();
+          setTimeout(function() { loadOne(i + 1); }, 200);
+        });
       }
       loadOne(0);
     }
@@ -676,13 +589,13 @@
         var chgClass = chg >= 0 ? 'text-pos' : 'text-neg';
         var arrow = chg >= 0 ? '▲' : '▼';
         var catColor = CAT_COLORS[etf.cat] || '#8b949e';
-        // Mini color bar gradient
-        var barPct = Math.min(100, Math.max(0, (chg + 2) / 4 * 100));
         var barColor;
         if (chg >= 2) barColor = '#00ff7f';
         else if (chg <= -2) barColor = '#ff4d4d';
         else if (chg >= 0) barColor = 'linear-gradient(to right, #ffd700, #00ff7f)';
         else barColor = 'linear-gradient(to right, #ff4d4d, #ffd700)';
+
+        var ts = etfFetchTimestamps[sym] || '';
 
         html += '<div class="etf-card bg-bg-800 border border-stroke-500 rounded-xl overflow-hidden" data-etf="' + sym + '">' +
           '<div class="p-4">' +
@@ -693,18 +606,17 @@
             '<div class="text-xs text-fg-400 mb-3 truncate">' + etf.name + '</div>' +
             '<div class="mono text-xl font-bold mb-1">' + fmtPrice(q.price) + '</div>' +
             '<div class="mono text-sm font-semibold ' + chgClass + '">' + arrow + ' ' + fmtChange(chg) + '</div>' +
+            (ts ? '<div class="text-[10px] text-fg-600 mt-2 mono">Updated ' + ts + '</div>' : '') +
           '</div>' +
-          '<div style="height:4px;background:' + (typeof barColor === 'string' && barColor.indexOf('linear') === 0 ? barColor : barColor) + ';"></div>' +
+          '<div style="height:4px;background:' + barColor + ';"></div>' +
         '</div>';
       });
-      // Add remaining skeletons
       var remaining = tickers.length - Object.keys(etfQuotes).filter(function(k) { return tickers.indexOf(k) !== -1; }).length;
       if (remaining > 0 && etfLoading) {
         for (var r = 0; r < remaining; r++) html += '<div class="skeleton" style="height:150px;"></div>';
       }
       grid.innerHTML = html;
 
-      // Attach click handlers
       grid.querySelectorAll('.etf-card').forEach(function(card) {
         card.addEventListener('click', function() {
           var sym = card.dataset.etf;
@@ -746,7 +658,7 @@
             '</div>' +
           '</div>' +
         '</div>' +
-        '<div id="holdingsProgress-x1y2" class="text-sm text-fg-400 mb-3"></div>' +
+        '<div id="holdingsProgress-x1y2" class="text-sm text-fg-400 mb-3">📡 Fetching live quotes for ' + etf.holdings.length + ' holdings...</div>' +
         '<div class="bg-bg-800 border border-stroke-500 rounded-xl overflow-x-auto">' +
           '<table class="w-full text-sm">' +
             '<thead><tr class="border-b border-stroke-500 text-fg-400 text-xs">' +
@@ -761,12 +673,10 @@
           '</table>' +
         '</div>';
 
-      // Re-init icons
       if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
 
       document.getElementById('backToETF-btn').addEventListener('click', function() { switchTab('etf'); });
 
-      // Load holdings quotes
       loadHoldingsQuotes(etf.holdings);
     }
 
@@ -778,18 +688,31 @@
       function loadOne(i) {
         if (i >= holdings.length) {
           holdingsLoading = false;
-          document.getElementById('holdingsProgress-x1y2').textContent = holdings.length + ' / ' + holdings.length + ' loaded';
+          document.getElementById('holdingsProgress-x1y2').textContent = '✅ ' + holdings.length + ' / ' + holdings.length + ' loaded · ' + getTimestamp();
           return;
         }
         var sym = holdings[i];
-        var price = SAMPLE_STOCK_QUOTES[sym] || (50 + Math.random() * 200);
-        var pc = STOCK_PC_DELTAS[sym] || price * (1 - (Math.random() - 0.5) * 0.03);
-        var chg = pc > 0 ? ((price - pc) / pc) * 100 : 0;
-        holdingsQuotes[sym] = { price: typeof price === 'number' ? price : parseFloat(price), change: chg, pc: pc };
-        loaded++;
-        document.getElementById('holdingsProgress-x1y2').textContent = 'Loading holdings... ' + loaded + ' / ' + holdings.length;
-        renderHoldingsTable(holdings);
-        setTimeout(function() { loadOne(i + 1); }, 200);
+
+        finnhub('/quote?symbol=' + sym).then(function(q) {
+          if (q && typeof q.c === 'number' && q.c > 0) {
+            var price = q.c;
+            var pc = q.pc;
+            var chg = pc > 0 ? ((price - pc) / pc) * 100 : 0;
+            holdingsQuotes[sym] = { price: price, change: chg, pc: pc, high: q.h, low: q.l, open: q.o };
+          } else {
+            throw new Error('No data');
+          }
+          loaded++;
+          document.getElementById('holdingsProgress-x1y2').textContent = '📡 Loading holdings... ' + loaded + ' / ' + holdings.length;
+          renderHoldingsTable(holdings);
+          setTimeout(function() { loadOne(i + 1); }, 1000);
+        }).catch(function() {
+          holdingsQuotes[sym] = { price: null, change: 0, pc: null, high: null, low: null, open: null };
+          loaded++;
+          document.getElementById('holdingsProgress-x1y2').textContent = '📡 Loading holdings... ' + loaded + ' / ' + holdings.length + ' (some failed)';
+          renderHoldingsTable(holdings);
+          setTimeout(function() { loadOne(i + 1); }, 1000);
+        });
       }
       loadOne(0);
     }
@@ -801,6 +724,17 @@
         var q = holdingsQuotes[sym];
         if (!q) {
           html += '<tr class="border-b border-bg-700"><td colspan="6" class="px-4 py-3 text-fg-600 text-center"><div class="skeleton" style="height:20px;width:100%;"></div></td></tr>';
+          return;
+        }
+        if (q.price == null) {
+          html += '<tr class="border-b border-bg-700" style="background:rgba(255,77,77,0.04);">' +
+            '<td class="px-4 py-3 text-fg-400 font-semibold">#' + (idx + 1) + '</td>' +
+            '<td class="px-4 py-3 font-bold text-base">' + sym + '</td>' +
+            '<td class="px-4 py-3 text-fg-400 text-xs desktop-only">' + (COMPANY_NAMES[sym] || sym) + '</td>' +
+            '<td class="px-4 py-3 text-right mono text-fg-600">—</td>' +
+            '<td class="px-4 py-3 text-right mono text-fg-600">API limit</td>' +
+            '<td class="px-4 py-3 text-center"><button class="detail-btn text-accent-500 text-xs font-semibold hover:underline cursor-pointer bg-transparent border-none" data-sym="' + sym + '">View Detail →</button></td>' +
+          '</tr>';
           return;
         }
         var chgClass = q.change >= 0 ? 'text-pos' : 'text-neg';
@@ -848,7 +782,6 @@
       var html = '';
       var chartLabels = [];
       var chartData = [];
-      var chartColors = [];
 
       Object.keys(catStats).sort(function(a, b) { return catStats[b].count - catStats[a].count; }).forEach(function(cat) {
         var s = catStats[cat];
@@ -861,7 +794,6 @@
         if (avg >= 0.3) { bg = 'rgba(0,255,127,' + opacity + ')'; txtColor = '#00ff7f'; }
         else if (avg <= -0.3) { bg = 'rgba(255,77,77,' + opacity + ')'; txtColor = '#ff4d4d'; }
         else { bg = 'rgba(139,148,158,0.2)'; txtColor = '#8b949e'; }
-        chartColors.push(avg >= 0 ? 'rgba(0,255,127,0.7)' : 'rgba(255,77,77,0.7)');
 
         var size = s.count >= 5 ? 'col-span-2' : '';
         html += '<div class="heatmap-tile ' + size + '" data-cat="' + cat + '" style="background:' + bg + ';min-height:100px;">' +
@@ -912,49 +844,103 @@
       });
     }
 
-    // ── STOCK DETAIL ──
+    // ── STOCK DETAIL (Live API — 3 parallel calls) ──
     function loadStockDetail(symbol) {
       switchTab('stock');
       document.getElementById('stockPlaceholder-k3l4').classList.add('hidden');
       var detail = document.getElementById('stockDetail-m5n6');
       detail.classList.remove('hidden');
 
-      var companyName = COMPANY_NAMES[symbol] || symbol;
-      var price = SAMPLE_STOCK_QUOTES[symbol];
-      var pc = STOCK_PC_DELTAS[symbol];
-      var extra = STOCK_DETAILS[symbol];
+      // Show loading state immediately
+      detail.innerHTML =
+        '<button id="backFromDetail-btn" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-lg px-3 py-2 cursor-pointer text-sm font-semibold flex items-center gap-1 mb-4"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>' +
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-16 text-center">' +
+          '<div class="text-4xl mb-3 animate-pulse">📡</div>' +
+          '<div class="text-lg font-semibold text-fg-400">Loading live data for <span class="text-accent-500 font-bold">' + symbol + '</span>...</div>' +
+          '<div class="text-sm text-fg-600 mt-2">Calling Finnhub API (quote + metrics + profile)</div>' +
+        '</div>';
 
-      if (price == null) {
-        var searchEntry = SEARCH_DB[symbol];
-        if (searchEntry) {
-          companyName = searchEntry.description;
-          detail.innerHTML = '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-10 text-center">' +
-            '<div class="text-5xl mb-3">📊</div>' +
-            '<h2 class="text-xl font-bold mb-2">' + companyName + '</h2>' +
-            '<span class="bg-accent-500/20 text-accent-500 border border-accent-500/40 rounded-md px-3 py-1 text-base font-bold mono">' + symbol + '</span>' +
-            '<p class="text-fg-400 mt-4 text-sm">This stock is not in the sample dataset. Connect to Finnhub API for live data.</p>' +
-          '</div>';
-        } else {
-          detail.innerHTML = '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-10 text-center text-neg">No data available for ' + symbol + '.</div>';
+      if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
+      document.getElementById('backFromDetail-btn').addEventListener('click', function() {
+        if (currentETF) { openHoldings(currentETF); }
+        else { switchTab('etf'); }
+      });
+
+      // Fetch all three endpoints in parallel — fast and uses only 3 API calls
+      var quotePromise = finnhub('/quote?symbol=' + symbol).catch(function() { return null; });
+      var metricsPromise = finnhub('/stock/metric?symbol=' + symbol + '&metric=all').catch(function() { return null; });
+      var profilePromise = finnhub('/stock/profile2?symbol=' + symbol).catch(function() { return null; });
+
+      Promise.all([quotePromise, metricsPromise, profilePromise]).then(function(results) {
+        var q = results[0];
+        var metrics = results[1];
+        var profile = results[2];
+
+        if (!q || typeof q.c !== 'number' || q.c === 0) {
+          // Check if we have cached data from holdings
+          var cached = holdingsQuotes[symbol];
+          if (cached && cached.price != null) {
+            q = { c: cached.price, pc: cached.pc, h: cached.high, l: cached.low, o: cached.open };
+          } else {
+            renderStockDetailError(symbol, detail);
+            return;
+          }
         }
-        return;
+
+        renderStockDetailContent(symbol, q, profile || {}, metrics || {}, detail);
+      }).catch(function() {
+        renderStockDetailError(symbol, detail);
+      });
+    }
+
+    function renderStockDetailError(symbol, detail) {
+      var companyName = COMPANY_NAMES[symbol] || symbol;
+      detail.innerHTML =
+        '<button id="backFromDetail-btn" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-lg px-3 py-2 cursor-pointer text-sm font-semibold flex items-center gap-1 mb-4"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>' +
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-10 text-center">' +
+          '<div class="text-5xl mb-3">⚠️</div>' +
+          '<h2 class="text-xl font-bold mb-2 text-neg">Could not load data for ' + symbol + '</h2>' +
+          '<p class="text-fg-400 text-sm mb-4">' + companyName + '</p>' +
+          '<p class="text-fg-600 text-xs">This may be due to API rate limits (60 calls/min on free tier) or an invalid ticker.<br>Try again in a moment.</p>' +
+        '</div>';
+
+      if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
+      document.getElementById('backFromDetail-btn').addEventListener('click', function() {
+        if (currentETF) { openHoldings(currentETF); }
+        else { switchTab('etf'); }
+      });
+    }
+
+    function renderStockDetailContent(symbol, q, profile, metrics, detail) {
+      var companyName = (profile && profile.name) ? profile.name : (COMPANY_NAMES[symbol] || symbol);
+      var price = q.c;
+      var pc = q.pc;
+      var change = pc > 0 ? ((price - pc) / pc) * 100 : 0;
+      var changeDol = pc ? (price - pc) : 0;
+      var chgClass = change >= 0 ? 'text-pos' : 'text-neg';
+
+      var industry = (profile && profile.finnhubIndustry) ? profile.finnhubIndustry : '—';
+      var exchange = (profile && profile.exchange) ? profile.exchange : '';
+      var country = (profile && profile.country) ? profile.country : '';
+      var weburl = (profile && profile.weburl) ? profile.weburl.replace(/^https?:\/\//, '') : '';
+
+      // 52-week range — LIVE from Finnhub metrics
+      var w52High = (metrics && metrics.metric) ? metrics.metric['52WeekHigh'] : null;
+      var w52Low  = (metrics && metrics.metric) ? metrics.metric['52WeekLow']  : null;
+      var beta    = (metrics && metrics.metric) ? metrics.metric['beta']       : null;
+
+      // Market cap — from profile (in millions) or from metrics
+      var mktCapVal = null;
+      if (profile && profile.marketCapitalization) {
+        mktCapVal = profile.marketCapitalization * 1e6;
+      } else if (metrics && metrics.metric && metrics.metric['marketCapitalization']) {
+        mktCapVal = metrics.metric['marketCapitalization'] * 1e6;
       }
 
-      var change = pc > 0 ? ((price - pc) / pc) * 100 : 0;
-      var chgClass = change >= 0 ? 'text-pos' : 'text-neg';
-      var changeDol = pc ? (price - pc) : 0;
-
-      var w52High = extra ? extra.w52High : price * 1.15;
-      var w52Low = extra ? extra.w52Low : price * 0.75;
-      var beta = extra ? extra.beta : null;
-      var mktCap = extra ? extra.mktCap : null;
-      var exchange = extra ? extra.exchange : '';
-      var country = extra ? extra.country : '';
-      var weburl = extra ? extra.weburl : '';
-
       var rangePos = 50;
-      if (w52High && w52Low && w52High !== w52Low) {
+      if (w52High && w52Low && w52High !== w52Low && price) {
         rangePos = ((price - w52Low) / (w52High - w52Low)) * 100;
+        rangePos = Math.max(2, Math.min(98, rangePos));
       }
 
       var flowSignalText = '', flowColor = '';
@@ -975,9 +961,16 @@
       var pctFromHigh = w52High ? (((price - w52High) / w52High) * 100).toFixed(1) : null;
       var pctFromLow = w52Low ? (((price - w52Low) / w52Low) * 100).toFixed(1) : null;
 
-      var high = price * (1 + Math.random() * 0.02);
-      var low = price * (1 - Math.random() * 0.02);
-      var open = pc || price * 0.998;
+      var high = q.h || price * 1.01;
+      var low = q.l || price * 0.99;
+      var open = q.o || pc || price * 0.998;
+
+      // Day range bar position
+      var dayRangePos = 50;
+      if (high > low && price) {
+        dayRangePos = ((price - low) / (high - low)) * 100;
+        dayRangePos = Math.max(2, Math.min(98, dayRangePos));
+      }
 
       detail.innerHTML =
         '<button id="backFromDetail-btn" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-lg px-3 py-2 cursor-pointer text-sm font-semibold flex items-center gap-1 mb-4"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>' +
@@ -989,7 +982,7 @@
                 '<span class="bg-accent-500/20 text-accent-500 border border-accent-500/40 rounded-md px-2.5 py-0.5 text-sm font-bold mono">' + symbol + '</span>' +
                 (exchange ? '<span class="bg-bg-600 text-fg-400 rounded-md px-2 py-0.5 text-xs">' + exchange + '</span>' : '') +
               '</div>' +
-              '<div class="text-fg-400 text-sm">' + (country ? '📍 ' + country : '') + (weburl ? ' · <a href="https://' + weburl + '" target="_blank" class="text-accent-500 hover:underline">' + weburl + '</a>' : '') + '</div>' +
+              '<div class="text-fg-400 text-sm">' + (country ? '📍 ' + country : '') + (industry !== '—' ? ' · ' + industry : '') + (weburl ? ' · <a href="https://' + weburl + '" target="_blank" class="text-accent-500 hover:underline">' + weburl + '</a>' : '') + '</div>' +
             '</div>' +
             '<div class="text-right">' +
               '<div class="mono text-4xl font-extrabold">' + fmtPrice(price) + '</div>' +
@@ -1000,11 +993,11 @@
         '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">' +
           '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
             '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">📊 Market Cap</div>' +
-            '<div class="mono text-xl font-bold">' + fmtMktCap(mktCap) + '</div>' +
+            '<div class="mono text-xl font-bold">' + fmtMktCap(mktCapVal) + '</div>' +
           '</div>' +
           '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
             '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">⚡ Beta</div>' +
-            '<div class="mono text-xl font-bold">' + (beta != null ? beta.toFixed(2) : '—') + '</div>' +
+            '<div class="mono text-xl font-bold">' + (beta != null ? Number(beta).toFixed(2) : '—') + '</div>' +
             '<div class="text-[11px] text-fg-400">' + betaLabel + '</div>' +
           '</div>' +
           '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
@@ -1018,14 +1011,177 @@
             (pctFromLow ? '<div class="text-[11px] text-fg-400">+' + pctFromLow + '% from current</div>' : '') +
           '</div>' +
         '</div>' +
+        // Day range bar
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
+          '<div class="flex justify-between text-xs text-fg-400 mb-2">' +
+            '<span>Day Low: ' + fmtPrice(low) + '</span>' +
+            '<span class="font-semibold text-fg-100">Day Range</span>' +
+            '<span>Day High: ' + fmtPrice(high) + '</span>' +
+          '</div>' +
+          '<div class="range-bar"><div class="range-dot" style="left:' + dayRangePos + '%;"></div></div>' +
+        '</div>' +
         (w52High && w52Low ?
         '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
           '<div class="flex justify-between text-xs text-fg-400 mb-2">' +
             '<span>52W Low: ' + fmtPrice(w52Low) + '</span>' +
-            '<span class="font-semibold text-fg-100">Current: ' + fmtPrice(price) + '</span>' +
+            '<span class="font-semibold text-fg-100">52-Week Range</span>' +
             '<span>52W High: ' + fmtPrice(w52High) + '</span>' +
           '</div>' +
-          '<div class="range-bar"><div class="range-dot" style="left:' + Math.min(98,Math.max(2,rangePos)) + '%;"></div></div>' +
+          '<div class="range-bar"><div class="range-dot" style="left:' + rangePos + '%;"></div></div>' +
+          (pctFromHigh ? '<div class="text-center text-[11px] text-fg-400 mt-2">' + (parseFloat(pctFromHigh) >= 0 ? '+' : '') + pctFromHigh + '% from 52W High  ·  +' + Math.abs(parseFloat(pctFromLow)) + '% from 52W Low</div>' : '') +
         '</div>' : '') +
         (flowSignalText ?
-        '<div class="bg-bg-800 border rounded-xl p-5 mb-4
+        '<div class="bg-bg-800 border rounded-xl p-5 mb-4" style="border-color:' + flowColor + '44;">' +
+          '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">Money Flow Signal</div>' +
+          '<div class="text-base font-bold" style="color:' + flowColor + ';">' + flowSignalText + '</div>' +
+        '</div>' : '') +
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
+          '<div class="flex justify-between items-center mb-3 flex-wrap gap-2">' +
+            '<h3 class="text-sm font-semibold">Today\'s Price Action</h3>' +
+            '<div class="text-[11px] text-fg-400 mono">O: ' + fmtPrice(open) + '  H: ' + fmtPrice(high) + '  L: ' + fmtPrice(low) + '  C: ' + fmtPrice(price) + '</div>' +
+          '</div>' +
+          '<div class="relative h-48 md:h-56"><canvas id="intradayChart-detail"></canvas></div>' +
+          '<p class="text-[11px] text-fg-600 mt-2 text-center">⚠️ Simulated intraday curve based on OHLC data</p>' +
+        '</div>' +
+        '<div class="bg-bg-700 rounded-lg p-3 text-center">' +
+          '<span class="text-[11px] text-fg-400 mono">📡 All data live from Finnhub API (quote + metrics + profile) · Updated ' + getTimestamp() + '</span>' +
+        '</div>';
+
+      if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
+
+      document.getElementById('backFromDetail-btn').addEventListener('click', function() {
+        if (currentETF) { openHoldings(currentETF); }
+        else { switchTab('etf'); }
+      });
+
+      // Intraday chart
+      setTimeout(function() {
+        var canvas = document.getElementById('intradayChart-detail');
+        if (!canvas) return;
+        var pts = generateIntradayPoints(open, high, low, price, 30);
+        var labels = pts.map(function(_, i) {
+          var h = 9 + Math.floor((i * 390/30) / 60);
+          var min = (i * 390/30) % 60;
+          return h + ':' + String(Math.round(min)).padStart(2,'0');
+        });
+        new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: symbol,
+              data: pts,
+              borderColor: change >= 0 ? '#00ff7f' : '#ff4d4d',
+              backgroundColor: change >= 0 ? 'rgba(0,255,127,0.08)' : 'rgba(255,77,77,0.08)',
+              borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return fmtPrice(c.raw); } } } },
+            scales: {
+              x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 10 } } },
+              y: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', callback: function(v) { return '$' + v.toFixed(0); } } }
+            }
+          }
+        });
+      }, 50);
+    }
+
+    function generateIntradayPoints(open, high, low, close, count) {
+      var pts = [open];
+      for (var i = 1; i < count - 1; i++) {
+        var t = i / (count - 1);
+        var target = open + (close - open) * t;
+        var range = (high - low) * 0.3;
+        var noise = (Math.random() - 0.5) * range;
+        pts.push(Math.min(high, Math.max(low, target + noise * (1 - t * 0.5))));
+      }
+      pts.push(close);
+      return pts;
+    }
+
+    // ── SEARCH ──
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchDebounce);
+      var q = searchInput.value.trim().toLowerCase();
+      if (q.length < 1) { searchDropdown.classList.add('hidden'); return; }
+      searchDebounce = setTimeout(function() {
+        var allKeys = Object.keys(SEARCH_DB);
+        var results = allKeys.filter(function(sym) {
+          var entry = SEARCH_DB[sym];
+          return sym.toLowerCase().indexOf(q) !== -1 || entry.description.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 8);
+
+        if (!results.length) {
+          searchDropdown.innerHTML = '<div class="p-4 text-fg-400 text-sm text-center">No results for "' + searchInput.value.trim() + '"</div>';
+          searchDropdown.classList.remove('hidden');
+          return;
+        }
+
+        searchDropdown.innerHTML = results.map(function(sym) {
+          var r = SEARCH_DB[sym];
+          var isETF = ETF_DATA[sym] != null;
+          return '<div class="search-item" data-symbol="' + sym + '" data-type="' + (isETF ? 'etf' : 'stock') + '">' +
+            '<div><span class="font-bold">' + sym + '</span><span class="text-fg-400 text-sm ml-2">' + r.description + '</span></div>' +
+            '<span class="text-[11px] ' + (isETF ? 'text-accent-500' : 'text-fg-400') + '">' + (isETF ? '● ETF' : r.type) + '</span>' +
+          '</div>';
+        }).join('');
+        searchDropdown.classList.remove('hidden');
+
+        searchDropdown.querySelectorAll('.search-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            var sym = item.dataset.symbol;
+            var type = item.dataset.type;
+            searchInput.value = '';
+            searchDropdown.classList.add('hidden');
+            if (type === 'etf') { openHoldings(sym); }
+            else { currentETF = null; loadStockDetail(sym); }
+          });
+        });
+      }, 200);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) searchDropdown.classList.add('hidden');
+    });
+
+    // ── AUTO REFRESH ──
+    refreshToggleBtn.addEventListener('click', function() {
+      autoRefresh = !autoRefresh;
+      if (autoRefresh) {
+        refreshToggleBtn.textContent = 'ON';
+        refreshToggleBtn.style.background = '#00d4aa22';
+        refreshToggleBtn.style.color = '#00d4aa';
+        refreshToggleBtn.style.borderColor = '#00d4aa';
+        refreshCountdownEl.classList.remove('hidden');
+        startRefreshTimer();
+      } else {
+        refreshToggleBtn.textContent = 'OFF';
+        refreshToggleBtn.style.background = '#21262d';
+        refreshToggleBtn.style.color = '#8b949e';
+        refreshToggleBtn.style.borderColor = '#30363d';
+        refreshCountdownEl.classList.add('hidden');
+        clearInterval(refreshTimer);
+      }
+    });
+
+    function startRefreshTimer() {
+      refreshSecondsLeft = 300;
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(function() {
+        refreshSecondsLeft--;
+        var m = Math.floor(refreshSecondsLeft / 60);
+        var s = refreshSecondsLeft % 60;
+        refreshCountdownEl.textContent = m + ':' + String(s).padStart(2, '0');
+        if (refreshSecondsLeft <= 0) {
+          refreshSecondsLeft = 300;
+          loadETFFlow();
+        }
+      }, 1000);
+    }
+
+  })();
+  </script>
+</body>
+</html>
