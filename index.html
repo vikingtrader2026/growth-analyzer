@@ -294,25 +294,6 @@
       'Dividend Growth': '#6b7280'
     };
 
-    // ── SAMPLE ETF QUOTES ──
-    var SAMPLE_ETF_QUOTES = {
-      'SPY':  { c:582.40, pc:578.20 }, 'QQQ':  { c:498.65, pc:494.30 }, 'VUG':  { c:372.80, pc:370.10 },
-      'IWF':  { c:345.20, pc:342.80 }, 'SCHG': { c:98.45, pc:97.60 },   'MGK':  { c:298.60, pc:296.40 },
-      'SPYG': { c:82.35, pc:81.70 },   'VGT':  { c:578.90, pc:572.40 }, 'XLK':  { c:214.80, pc:211.60 },
-      'SMH':  { c:248.60, pc:244.20 }, 'SOXX': { c:242.80, pc:238.50 }, 'IGV':  { c:92.45, pc:91.20 },
-      'AIQ':  { c:38.60, pc:37.90 },   'ARKK': { c:52.40, pc:53.20 },   'ARKW': { c:78.65, pc:79.40 },
-      'ARKQ': { c:62.80, pc:62.10 },   'ARKG': { c:28.45, pc:29.20 },   'ARKF': { c:32.60, pc:32.10 },
-      'XLV':  { c:148.20, pc:147.40 }, 'IBB':  { c:138.60, pc:137.80 }, 'XBI':  { c:98.65, pc:97.40 },
-      'XLY':  { c:196.45, pc:195.20 }, 'XLC':  { c:82.56, pc:81.90 },
-      'ICLN': { c:14.80, pc:15.10 },   'TAN':  { c:42.60, pc:43.40 },   'QCLN': { c:38.20, pc:38.80 },
-      'BUG':  { c:32.80, pc:32.20 },   'CIBR': { c:52.45, pc:51.60 },
-      'BOTZ': { c:32.40, pc:31.80 },   'ROBO': { c:58.60, pc:57.90 },
-      'CLOU': { c:22.80, pc:22.40 },   'WCLD': { c:32.80, pc:32.20 },
-      'FINX': { c:28.60, pc:28.20 },
-      'VIG':  { c:182.40, pc:181.60 }, 'DGRO': { c:58.80, pc:58.40 },   'DGRW': { c:78.60, pc:78.20 },
-      'NOBL': { c:98.40, pc:98.80 },   'SDY':  { c:132.60, pc:133.20 },
-      'DRIV': { c:32.80, pc:32.40 },   'ARKX': { c:18.40, pc:18.60 }
-    };
 
     // ── COMPANY NAMES ──
     var COMPANY_NAMES = {
@@ -374,47 +355,6 @@
       'HASI':'Hannon Armstrong','AY':'Atlantica Sustainable','TPIC':'TPI Composites',
       'KRTO':'Kirotech','RNECY':'ReneSola','VWSYF':'Vestas Wind Systems','SAIL':'SailPoint Technologies',
       'SAP':'SAP SE','BIDU':'Baidu Inc'
-    };
-
-    // ── STOCK DETAILS ──
-    var STOCK_DETAILS = {
-      'NVDA': { w52High:152.89,w52Low:76.50,beta:1.68,mktCap:3250000000000,exchange:'NASDAQ',country:'US',weburl:'nvidia.com',industry:'Semiconductors' },
-      'MSFT': { w52High:430.82,w52Low:332.80,beta:0.89,mktCap:3060000000000,exchange:'NASDAQ',country:'US',weburl:'microsoft.com',industry:'Software' },
-      'AAPL': { w52High:199.62,w52Low:143.90,beta:1.24,mktCap:2780000000000,exchange:'NASDAQ',country:'US',weburl:'apple.com',industry:'Consumer Electronics' },
-      'GOOGL':{ w52High:182.30,w52Low:130.67,beta:1.05,mktCap:2080000000000,exchange:'NASDAQ',country:'US',weburl:'abc.xyz',industry:'Internet Services' },
-      'META': { w52High:590.51,w52Low:390.42,beta:1.22,mktCap:1440000000000,exchange:'NASDAQ',country:'US',weburl:'meta.com',industry:'Social Media' },
-      'AMZN': { w52High:201.20,w52Low:151.61,beta:1.14,mktCap:1990000000000,exchange:'NASDAQ',country:'US',weburl:'amazon.com',industry:'E-Commerce' },
-      'TSLA': { w52High:299.29,w52Low:182.10,beta:2.05,mktCap:790000000000,exchange:'NASDAQ',country:'US',weburl:'tesla.com',industry:'Electric Vehicles' },
-      'AVGO': { w52High:185.20,w52Low:120.80,beta:1.32,mktCap:780000000000,exchange:'NASDAQ',country:'US',weburl:'broadcom.com',industry:'Semiconductors' },
-      'V':    { w52High:295.80,w52Low:248.60,beta:0.94,mktCap:555000000000,exchange:'NYSE',country:'US',weburl:'visa.com',industry:'Financial Services' },
-      'MA':   { w52High:490.20,w52Low:398.60,beta:1.10,mktCap:435000000000,exchange:'NYSE',country:'US',weburl:'mastercard.com',industry:'Financial Services' },
-      'LLY':  { w52High:810.20,w52Low:548.40,beta:0.78,mktCap:720000000000,exchange:'NYSE',country:'US',weburl:'lilly.com',industry:'Pharmaceuticals' },
-      'NFLX': { w52High:725.80,w52Low:542.10,beta:1.35,mktCap:305000000000,exchange:'NASDAQ',country:'US',weburl:'netflix.com',industry:'Entertainment' },
-      'CRM':  { w52High:298.80,w52Low:215.40,beta:1.18,mktCap:260000000000,exchange:'NYSE',country:'US',weburl:'salesforce.com',industry:'Software' },
-      'AMD':  { w52High:187.40,w52Low:120.50,beta:1.58,mktCap:262000000000,exchange:'NASDAQ',country:'US',weburl:'amd.com',industry:'Semiconductors' },
-      'ADBE': { w52High:570.80,w52Low:432.60,beta:1.25,mktCap:240000000000,exchange:'NASDAQ',country:'US',weburl:'adobe.com',industry:'Software' },
-      'CRWD': { w52High:365.20,w52Low:218.40,beta:1.35,mktCap:75000000000,exchange:'NASDAQ',country:'US',weburl:'crowdstrike.com',industry:'Cybersecurity' },
-      'PANW': { w52High:340.80,w52Low:235.60,beta:1.18,mktCap:92000000000,exchange:'NASDAQ',country:'US',weburl:'paloaltonetworks.com',industry:'Cybersecurity' },
-      'COIN': { w52High:225.60,w52Low:98.40,beta:2.85,mktCap:42000000000,exchange:'NASDAQ',country:'US',weburl:'coinbase.com',industry:'Fintech' },
-      'SQ':   { w52High:88.40,w52Low:48.20,beta:2.18,mktCap:42000000000,exchange:'NYSE',country:'US',weburl:'block.xyz',industry:'Fintech' },
-      'ISRG': { w52High:420.60,w52Low:298.80,beta:1.02,mktCap:135000000000,exchange:'NASDAQ',country:'US',weburl:'intuitive.com',industry:'Medical Devices' },
-      'NOW':  { w52High:820.40,w52Low:620.80,beta:1.15,mktCap:158000000000,exchange:'NYSE',country:'US',weburl:'servicenow.com',industry:'Software' },
-      'DDOG': { w52High:138.60,w52Low:82.40,beta:1.42,mktCap:38000000000,exchange:'NASDAQ',country:'US',weburl:'datadoghq.com',industry:'Software' },
-      'SNOW': { w52High:192.40,w52Low:120.80,beta:1.45,mktCap:48000000000,exchange:'NYSE',country:'US',weburl:'snowflake.com',industry:'Cloud Computing' },
-      'PLTR': { w52High:28.60,w52Low:14.80,beta:1.62,mktCap:52000000000,exchange:'NYSE',country:'US',weburl:'palantir.com',industry:'Software' },
-      'NET':  { w52High:98.40,w52Low:55.80,beta:1.48,mktCap:28000000000,exchange:'NYSE',country:'US',weburl:'cloudflare.com',industry:'Cloud Computing' },
-      'SPOT': { w52High:218.40,w52Low:128.60,beta:1.55,mktCap:35000000000,exchange:'NYSE',country:'US',weburl:'spotify.com',industry:'Media' },
-      'MELI': { w52High:1820.40,w52Low:1180.60,beta:1.52,mktCap:82000000000,exchange:'NASDAQ',country:'US',weburl:'mercadolibre.com',industry:'E-Commerce' },
-      'BKNG': { w52High:3680.40,w52Low:2850.60,beta:1.28,mktCap:128000000000,exchange:'NASDAQ',country:'US',weburl:'bookingholdings.com',industry:'Travel' },
-      'JPM':  { w52High:212.40,w52Low:158.60,beta:1.12,mktCap:560000000000,exchange:'NYSE',country:'US',weburl:'jpmorganchase.com',industry:'Banking' },
-      'HD':   { w52High:405.60,w52Low:298.40,beta:1.08,mktCap:362000000000,exchange:'NYSE',country:'US',weburl:'homedepot.com',industry:'Retail' },
-      'UNH':  { w52High:580.40,w52Low:428.60,beta:0.72,mktCap:512000000000,exchange:'NYSE',country:'US',weburl:'unitedhealthgroup.com',industry:'Healthcare' },
-      'COST': { w52High:648.20,w52Low:498.60,beta:0.68,mktCap:272000000000,exchange:'NASDAQ',country:'US',weburl:'costco.com',industry:'Retail' },
-      'ENPH': { w52High:175.80,w52Low:82.40,beta:1.82,mktCap:17000000000,exchange:'NASDAQ',country:'US',weburl:'enphase.com',industry:'Clean Energy' },
-      'FSLR': { w52High:232.40,w52Low:142.80,beta:1.48,mktCap:20000000000,exchange:'NASDAQ',country:'US',weburl:'firstsolar.com',industry:'Clean Energy' },
-      'MDB':  { w52High:418.60,w52Low:248.40,beta:1.52,mktCap:26000000000,exchange:'NASDAQ',country:'US',weburl:'mongodb.com',industry:'Software' },
-      'HUBS': { w52High:648.20,w52Low:408.60,beta:1.62,mktCap:30000000000,exchange:'NYSE',country:'US',weburl:'hubspot.com',industry:'Software' },
-      'WDAY': { w52High:292.40,w52Low:218.60,beta:1.28,mktCap:68000000000,exchange:'NASDAQ',country:'US',weburl:'workday.com',industry:'Software' }
     };
 
     // ── FINNHUB API HELPER ──
@@ -584,7 +524,7 @@
         var sym = ETF_TICKERS[i];
 
         tryFinnhub(sym).then(function(liveQ) {
-          var q = liveQ || SAMPLE_ETF_QUOTES[sym];
+          var q = liveQ || null;
           if (q) {
             var chg = q.pc > 0 ? ((q.c - q.pc) / q.pc) * 100 : 0;
             etfQuotes[sym] = { price: q.c, change: chg, pc: q.pc };
@@ -746,7 +686,6 @@
           renderHoldingsTable(holdings);
           setTimeout(function() { loadOne(i + 1); }, 1000);
         }).catch(function() {
-          // Fallback: generate a reasonable quote if API fails
           holdingsQuotes[sym] = { price: null, change: 0, pc: null, high: null, low: null, open: null };
           loaded++;
           document.getElementById('holdingsProgress-x1y2').textContent = '📡 Loading holdings... ' + loaded + ' / ' + holdings.length + ' (some failed)';
@@ -884,7 +823,7 @@
       });
     }
 
-    // ── STOCK DETAIL (Live API) ──
+    // ── STOCK DETAIL (Live API — 3 parallel calls) ──
     function loadStockDetail(symbol) {
       switchTab('stock');
       document.getElementById('stockPlaceholder-k3l4').classList.add('hidden');
@@ -897,7 +836,7 @@
         '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-16 text-center">' +
           '<div class="text-4xl mb-3 animate-pulse">📡</div>' +
           '<div class="text-lg font-semibold text-fg-400">Loading live data for <span class="text-accent-500 font-bold">' + symbol + '</span>...</div>' +
-          '<div class="text-sm text-fg-600 mt-2">Calling Finnhub API</div>' +
+          '<div class="text-sm text-fg-600 mt-2">Calling Finnhub API (quote + metrics + profile)</div>' +
         '</div>';
 
       if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
@@ -906,13 +845,15 @@
         else { switchTab('etf'); }
       });
 
-      // Fetch live quote and profile
+      // Fetch all three endpoints in parallel — fast and uses only 3 API calls
       var quotePromise = finnhub('/quote?symbol=' + symbol).catch(function() { return null; });
+      var metricsPromise = finnhub('/stock/metric?symbol=' + symbol + '&metric=all').catch(function() { return null; });
       var profilePromise = finnhub('/stock/profile2?symbol=' + symbol).catch(function() { return null; });
 
-      Promise.all([quotePromise, profilePromise]).then(function(results) {
+      Promise.all([quotePromise, metricsPromise, profilePromise]).then(function(results) {
         var q = results[0];
-        var profile = results[1];
+        var metrics = results[1];
+        var profile = results[2];
 
         if (!q || typeof q.c !== 'number' || q.c === 0) {
           // Check if we have cached data from holdings
@@ -925,7 +866,7 @@
           }
         }
 
-        renderStockDetailContent(symbol, q, profile || {}, detail);
+        renderStockDetailContent(symbol, q, profile || {}, metrics || {}, detail);
       }).catch(function() {
         renderStockDetailError(symbol, detail);
       });
@@ -949,7 +890,7 @@
       });
     }
 
-    function renderStockDetailContent(symbol, q, profile, detail) {
+    function renderStockDetailContent(symbol, q, profile, metrics, detail) {
       var companyName = (profile && profile.name) ? profile.name : (COMPANY_NAMES[symbol] || symbol);
       var price = q.c;
       var pc = q.pc;
@@ -957,18 +898,26 @@
       var changeDol = pc ? (price - pc) : 0;
       var chgClass = change >= 0 ? 'text-pos' : 'text-neg';
 
-      var industry = (profile && profile.finnhubIndustry) ? profile.finnhubIndustry : (STOCK_DETAILS[symbol] ? (STOCK_DETAILS[symbol].industry || '—') : '—');
-      var exchange = (profile && profile.exchange) ? profile.exchange : (STOCK_DETAILS[symbol] ? STOCK_DETAILS[symbol].exchange : '');
-      var country = (profile && profile.country) ? profile.country : (STOCK_DETAILS[symbol] ? STOCK_DETAILS[symbol].country : '');
-      var weburl = (profile && profile.weburl) ? profile.weburl.replace(/^https?:\/\//, '') : (STOCK_DETAILS[symbol] ? STOCK_DETAILS[symbol].weburl : '');
-      var mktCapVal = (profile && profile.marketCapitalization) ? profile.marketCapitalization * 1e6 : (STOCK_DETAILS[symbol] ? STOCK_DETAILS[symbol].mktCap : null);
-      var beta = STOCK_DETAILS[symbol] ? STOCK_DETAILS[symbol].beta : null;
+      var industry = (profile && profile.finnhubIndustry) ? profile.finnhubIndustry : '—';
+      var exchange = (profile && profile.exchange) ? profile.exchange : '';
+      var country = (profile && profile.country) ? profile.country : '';
+      var weburl = (profile && profile.weburl) ? profile.weburl.replace(/^https?:\/\//, '') : '';
 
-      var w52High = STOCK_DETAILS[symbol] ? STOCK_DETAILS[symbol].w52High : (q.h ? q.h * 1.15 : price * 1.15);
-      var w52Low = STOCK_DETAILS[symbol] ? STOCK_DETAILS[symbol].w52Low : (q.l ? q.l * 0.75 : price * 0.75);
+      // 52-week range — LIVE from Finnhub metrics
+      var w52High = (metrics && metrics.metric) ? metrics.metric['52WeekHigh'] : null;
+      var w52Low  = (metrics && metrics.metric) ? metrics.metric['52WeekLow']  : null;
+      var beta    = (metrics && metrics.metric) ? metrics.metric['beta']       : null;
+
+      // Market cap — from profile (in millions) or from metrics
+      var mktCapVal = null;
+      if (profile && profile.marketCapitalization) {
+        mktCapVal = profile.marketCapitalization * 1e6;
+      } else if (metrics && metrics.metric && metrics.metric['marketCapitalization']) {
+        mktCapVal = metrics.metric['marketCapitalization'] * 1e6;
+      }
 
       var rangePos = 50;
-      if (w52High && w52Low && w52High !== w52Low) {
+      if (w52High && w52Low && w52High !== w52Low && price) {
         rangePos = ((price - w52Low) / (w52High - w52Low)) * 100;
         rangePos = Math.max(2, Math.min(98, rangePos));
       }
@@ -995,6 +944,13 @@
       var low = q.l || price * 0.99;
       var open = q.o || pc || price * 0.998;
 
+      // Day range bar position
+      var dayRangePos = 50;
+      if (high > low && price) {
+        dayRangePos = ((price - low) / (high - low)) * 100;
+        dayRangePos = Math.max(2, Math.min(98, dayRangePos));
+      }
+
       detail.innerHTML =
         '<button id="backFromDetail-btn" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-lg px-3 py-2 cursor-pointer text-sm font-semibold flex items-center gap-1 mb-4"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>' +
         '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
@@ -1020,7 +976,7 @@
           '</div>' +
           '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
             '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">⚡ Beta</div>' +
-            '<div class="mono text-xl font-bold">' + (beta != null ? beta.toFixed(2) : '—') + '</div>' +
+            '<div class="mono text-xl font-bold">' + (beta != null ? Number(beta).toFixed(2) : '—') + '</div>' +
             '<div class="text-[11px] text-fg-400">' + betaLabel + '</div>' +
           '</div>' +
           '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
@@ -1034,14 +990,24 @@
             (pctFromLow ? '<div class="text-[11px] text-fg-400">+' + pctFromLow + '% from current</div>' : '') +
           '</div>' +
         '</div>' +
+        // Day range bar
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
+          '<div class="flex justify-between text-xs text-fg-400 mb-2">' +
+            '<span>Day Low: ' + fmtPrice(low) + '</span>' +
+            '<span class="font-semibold text-fg-100">Day Range</span>' +
+            '<span>Day High: ' + fmtPrice(high) + '</span>' +
+          '</div>' +
+          '<div class="range-bar"><div class="range-dot" style="left:' + dayRangePos + '%;"></div></div>' +
+        '</div>' +
         (w52High && w52Low ?
         '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
           '<div class="flex justify-between text-xs text-fg-400 mb-2">' +
             '<span>52W Low: ' + fmtPrice(w52Low) + '</span>' +
-            '<span class="font-semibold text-fg-100">Current: ' + fmtPrice(price) + '</span>' +
+            '<span class="font-semibold text-fg-100">52-Week Range</span>' +
             '<span>52W High: ' + fmtPrice(w52High) + '</span>' +
           '</div>' +
           '<div class="range-bar"><div class="range-dot" style="left:' + rangePos + '%;"></div></div>' +
+          (pctFromHigh ? '<div class="text-center text-[11px] text-fg-400 mt-2">' + (parseFloat(pctFromHigh) >= 0 ? '+' : '') + pctFromHigh + '% from 52W High  ·  +' + Math.abs(parseFloat(pctFromLow)) + '% from 52W Low</div>' : '') +
         '</div>' : '') +
         (flowSignalText ?
         '<div class="bg-bg-800 border rounded-xl p-5 mb-4" style="border-color:' + flowColor + '44;">' +
@@ -1057,7 +1023,7 @@
           '<p class="text-[11px] text-fg-600 mt-2 text-center">⚠️ Simulated intraday curve based on OHLC data</p>' +
         '</div>' +
         '<div class="bg-bg-700 rounded-lg p-3 text-center">' +
-          '<span class="text-[11px] text-fg-400 mono">📡 Live data from Finnhub · Updated ' + getTimestamp() + '</span>' +
+          '<span class="text-[11px] text-fg-400 mono">📡 All data live from Finnhub API (quote + metrics + profile) · Updated ' + getTimestamp() + '</span>' +
         '</div>';
 
       if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
