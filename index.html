@@ -3,47 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <title>Growth Analyzer Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: { 900: '#0d1117', 800: '#161b22', 700: '#1c2129', 600: '#21262d' },
+            stroke: { 500: '#30363d', 400: '#484f58' },
+            fg: { 100: '#e6edf3', 200: '#c9d1d9', 400: '#8b949e', 600: '#484f58' },
+            accent: { 500: '#00d4aa', 400: '#00e4bb', 300: '#00ff7f' },
+            pos: '#00ff7f',
+            neg: '#ff4d4d',
+            cat: {
+              broad: '#3b82f6',
+              tech: '#8b5cf6',
+              ark: '#f59e0b',
+              health: '#10b981',
+              consumer: '#f97316',
+              clean: '#22c55e',
+              cyber: '#ef4444',
+              ai: '#06b6d4',
+              cloud: '#a78bfa',
+              fintech: '#eab308',
+              dividend: '#6b7280'
+            }
+          }
+        }
+      }
+    };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
-    .mono { font-family: 'Courier New', monospace; }
+    .mono { font-family: 'Courier New', monospace; font-variant-numeric: tabular-nums; }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .tab-btn.active { background: #00d4aa; color: #0d1117; }
-    .skeleton { background: linear-gradient(90deg, #21262d 25%, #30363d 50%, #21262d 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+    .tab-btn.active { background: #00d4aa !important; color: #0d1117 !important; }
+    .skeleton { background: linear-gradient(90deg, #21262d 25%, #30363d 50%, #21262d 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 12px; }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    .positive { color: #00ff7f; }
-    .negative { color: #ff4d4d; }
-    .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
-    .pill-green { background: #00ff7f22; color: #00ff7f; border: 1px solid #00ff7f44; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
-    .pill-red { background: #ff4d4d22; color: #ff4d4d; border: 1px solid #ff4d4d44; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
-    .pill-gray { background: #8b949e22; color: #8b949e; border: 1px solid #8b949e44; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    .etf-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .etf-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
     .stock-row { cursor: pointer; transition: background 0.15s; }
     .stock-row:hover { background: #1c2129; }
     .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #161b22; border: 1px solid #30363d; border-radius: 8px; z-index: 100; max-height: 280px; overflow-y: auto; }
     .search-item { padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #21262d; }
     .search-item:hover { background: #1c2129; }
-    .sector-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border-radius: 12px; padding: 16px; border: 1px solid #30363d; }
-    .sector-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-    .range-bar { position: relative; height: 8px; border-radius: 4px; background: linear-gradient(to right, #ff4d4d, #ffd700, #00ff7f); }
-    .range-dot { position: absolute; top: -4px; width: 16px; height: 16px; border-radius: 50%; background: white; border: 2px solid #0d1117; transform: translateX(-50%); box-shadow: 0 0 6px rgba(255,255,255,0.6); }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; align-items: center; justify-content: center; }
     .hidden { display: none !important; }
-    input, select { background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 8px; padding: 10px 14px; outline: none; width: 100%; }
+    input, select { background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 8px; padding: 10px 14px; outline: none; width: 100%; font-size: 16px; }
     input:focus, select:focus { border-color: #00d4aa; }
     .btn-primary { background: linear-gradient(135deg, #00d4aa, #00a888); color: #0d1117; font-weight: 700; border: none; border-radius: 8px; padding: 12px 24px; cursor: pointer; transition: opacity 0.2s; }
     .btn-primary:hover { opacity: 0.85; }
     .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, #00d4aa, #00ff7f); transition: width 0.3s; z-index: 999; }
-    @media(max-width: 640px) {
+    .cat-filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #30363d; background: #21262d; color: #8b949e; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; transition: all 0.15s; }
+    .cat-filter-btn.active { background: #00d4aa22; color: #00d4aa; border-color: #00d4aa; }
+    .cat-filter-btn:hover { border-color: #484f58; }
+    .heatmap-tile { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+    .heatmap-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+    .range-bar { position: relative; height: 8px; border-radius: 4px; background: linear-gradient(to right, #ff4d4d, #ffd700, #00ff7f); }
+    .range-dot { position: absolute; top: -4px; width: 16px; height: 16px; border-radius: 50%; background: white; border: 2px solid #0d1117; transform: translateX(-50%); box-shadow: 0 0 6px rgba(255,255,255,0.6); }
+    @media(max-width: 767px) {
       .desktop-only { display: none !important; }
       .mobile-nav { display: flex !important; }
     }
-    @media(min-width: 641px) {
+    @media(min-width: 768px) {
       .mobile-nav { display: none !important; }
     }
   </style>
@@ -52,839 +82,942 @@
   <app-icon data-id="1" hidden data-icon="trending-up" data-palette="Green"></app-icon>
   <app-disclaimer data-id="2" intent="financial"></app-disclaimer>
 
-  <!-- Progress Bar -->
-  <div data-id="3" id="progressBar" class="progress-bar hidden" style="width:0%"></div>
+  <div data-id="3" id="progressBar-a1b2" class="progress-bar hidden" style="width:0%"></div>
 
   <!-- API Key Modal -->
-  <div data-id="4" id="apiModal" class="modal-overlay">
-    <div data-id="5" class="card" style="width:100%;max-width:420px;padding:32px;margin:16px;">
+  <div data-id="4" id="apiModal-c3d4" class="modal-overlay">
+    <div data-id="5" class="rounded-xl border border-stroke-500 bg-bg-800" style="width:100%;max-width:420px;padding:32px;margin:16px;">
       <div data-id="6" style="text-align:center;margin-bottom:24px;">
         <div data-id="7" style="font-size:48px;margin-bottom:12px;">📈</div>
-        <h1 data-id="8" style="font-size:24px;font-weight:700;background:linear-gradient(135deg,#00d4aa,#00ff7f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Growth Analyzer</h1>
-        <p data-id="9" style="color:#8b949e;margin-top:8px;font-size:14px;">Connect your Finnhub API to get started</p>
+        <h1 data-id="8" id="title-e5f6" class="text-2xl font-extrabold bg-gradient-to-r from-accent-500 to-accent-300 bg-clip-text text-transparent">Growth Analyzer</h1>
+        <p data-id="9" id="subtitle-g7h8" class="text-fg-400 mt-2 text-sm">Connect your Finnhub API to get started</p>
       </div>
-      <label data-id="10" style="display:block;font-size:13px;color:#8b949e;margin-bottom:6px;">Finnhub API Key</label>
-      <input data-id="11" type="password" id="apiKeyInput" placeholder="Enter your Finnhub API key..." style="margin-bottom:16px;" />
-      <button data-id="12" class="btn-primary" id="connectBtn" style="width:100%;">🚀 Connect &amp; Launch Dashboard</button>
-      <p data-id="13" style="text-align:center;margin-top:14px;font-size:12px;color:#8b949e;">
-        Get a free key at <a data-id="14" href="https://finnhub.io" target="_blank" style="color:#00d4aa;">finnhub.io</a>
+      <label data-id="10" id="label-i9j0" class="block text-xs text-fg-400 mb-1">Finnhub API Key</label>
+      <input data-id="11" type="password" id="apiKeyInput-k1l2" placeholder="Enter your Finnhub API key..." class="mb-4" />
+      <button data-id="12" class="btn-primary w-full" id="connectBtn-m3n4">🚀 Connect & Launch Dashboard</button>
+      <p data-id="13" id="helptext-o5p6" class="text-center mt-3 text-xs text-fg-400">
+        Get a free key at <a data-id="14" href="https://finnhub.io" target="_blank" class="text-accent-500 hover:underline">finnhub.io</a>
       </p>
-      <div data-id="15" id="apiError" class="hidden" style="color:#ff4d4d;font-size:13px;text-align:center;margin-top:10px;"></div>
+      <div data-id="15" id="apiError-q7r8" class="hidden text-neg text-sm text-center mt-3"></div>
     </div>
   </div>
 
   <!-- Main Dashboard -->
-  <div data-id="16" id="dashboard" class="hidden" style="min-height:100vh;display:flex;flex-direction:column;">
+  <div data-id="16" id="dashboard-s9t0" class="hidden" style="min-height:100vh;display:flex;flex-direction:column;">
 
     <!-- Header -->
-    <header data-id="17" style="background:#161b22;border-bottom:1px solid #30363d;padding:12px 16px;position:sticky;top:0;z-index:50;">
-      <div data-id="18" style="max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <span data-id="19" style="font-size:20px;font-weight:800;background:linear-gradient(135deg,#00d4aa,#00ff7f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;">📈 Growth Analyzer</span>
+    <header data-id="17" id="header-u1v2" class="bg-bg-800 border-b border-stroke-500 px-4 py-3 sticky top-0 z-50">
+      <div data-id="18" class="max-w-[1400px] mx-auto flex items-center gap-3 flex-wrap">
+        <span data-id="19" id="logo-w3x4" class="text-xl font-extrabold bg-gradient-to-r from-accent-500 to-accent-300 bg-clip-text text-transparent whitespace-nowrap">📈 Growth Analyzer</span>
 
         <!-- Search -->
-        <div data-id="20" style="position:relative;flex:1;min-width:200px;max-width:500px;">
-          <input data-id="21" type="text" id="searchInput" placeholder="🔍 Search any stock ticker or company name..." style="padding-left:14px;font-size:14px;" />
-          <div data-id="22" id="searchDropdown" class="search-dropdown hidden"></div>
+        <div data-id="20" id="searchWrap-y5z6" class="relative flex-1 min-w-[200px] max-w-[500px]">
+          <input data-id="21" type="text" id="searchInput-a7b8" placeholder="Search any stock ticker or company name..." class="pl-4 text-sm" />
+          <div data-id="22" id="searchDropdown-c9d0" class="search-dropdown hidden"></div>
         </div>
 
-        <div data-id="23" style="display:flex;align-items:center;gap:10px;margin-left:auto;">
-          <!-- Auto Refresh -->
-          <div data-id="24" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#8b949e;" class="desktop-only">
+        <div data-id="23" class="flex items-center gap-3 ml-auto">
+          <div data-id="24" class="desktop-only flex items-center gap-2 text-xs text-fg-400">
             <span data-id="25">Auto</span>
-            <button data-id="26" id="refreshToggle" style="background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">OFF</button>
-            <span data-id="27" id="refreshCountdown" class="hidden" style="color:#00d4aa;"></span>
+            <button data-id="26" id="refreshToggle-e1f2" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-full px-3 py-1 cursor-pointer text-xs font-semibold">OFF</button>
+            <span data-id="27" id="refreshCountdown-g3h4" class="hidden text-accent-500"></span>
           </div>
-          <!-- Settings -->
-          <button data-id="28" id="settingsBtn" style="background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;" title="Change API Key">⚙️</button>
+          <button data-id="28" id="settingsBtn-i5j6" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-lg px-2.5 py-1.5 cursor-pointer text-base" title="Change API Key">
+            <i data-id="29" data-lucide="settings" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
 
       <!-- Tab Bar (desktop) -->
-      <div data-id="29" class="desktop-only" style="max-width:1400px;margin:10px auto 0;display:flex;gap:6px;">
-        <button data-id="30" class="tab-btn active" data-tab="market" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🚀 60 Growth Leaders</button>
-        <button data-id="31" class="tab-btn" data-tab="sector" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🌡️ Growth Sectors</button>
-        <button data-id="32" class="tab-btn" data-tab="stock" style="padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🔍 Stock Detail</button>
+      <div data-id="30" class="desktop-only max-w-[1400px] mx-auto mt-2.5 flex gap-1.5">
+        <button data-id="31" class="tab-btn active" data-tab="etf" style="padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:#21262d;color:#e6edf3;transition:all 0.2s;">📊 ETF Flow</button>
+        <button data-id="32" class="tab-btn" data-tab="holdings" style="padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:#21262d;color:#e6edf3;transition:all 0.2s;">📈 Holdings</button>
+        <button data-id="33" class="tab-btn" data-tab="heatmap" style="padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🔥 ETF Heatmap</button>
+        <button data-id="34" class="tab-btn" data-tab="stock" style="padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:#21262d;color:#e6edf3;transition:all 0.2s;">🔍 Stock Lookup</button>
       </div>
     </header>
 
     <!-- Content -->
-    <main data-id="33" style="flex:1;max-width:1400px;margin:0 auto;width:100%;padding:16px;padding-bottom:80px;">
+    <main data-id="35" id="main-k7l8" class="flex-1 max-w-[1400px] mx-auto w-full p-4 pb-24">
 
-      <!-- MARKET FLOW TAB -->
-      <div data-id="34" id="tab-market" class="tab-content active">
-        <div data-id="35" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-          <h2 data-id="36" style="font-size:18px;font-weight:700;">60 Growth Leaders — Money Flow</h2>
-          <div data-id="37" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <div data-id="38" id="flowSummary" style="font-size:13px;color:#8b949e;"></div>
-            <select data-id="39" id="flowFilter" style="width:auto;padding:6px 12px;font-size:13px;">
-              <option data-id="40" value="all">All Stocks</option>
-              <option data-id="41" value="inflow">🟢 Inflow Only</option>
-              <option data-id="42" value="outflow">🔴 Outflow Only</option>
-              <option data-id="43" value="neutral">⚪ Neutral Only</option>
-            </select>
+      <!-- ETF FLOW TAB -->
+      <div data-id="36" id="tab-etf" class="tab-content active">
+        <div data-id="37" id="etfHeader-m9n0" class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h2 data-id="38" id="etfTitle-o1p2" class="text-lg font-bold">40 Growth & Income ETFs — Money Flow</h2>
+          <div data-id="39" id="etfProgress-q3r4" class="text-sm text-fg-400"></div>
+        </div>
+        <!-- Category Filters -->
+        <div data-id="40" id="catFilters-s5t6" class="flex gap-2 mb-4 overflow-x-auto pb-2" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+        <!-- ETF Grid -->
+        <div data-id="41" id="etfGrid-u7v8" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+      </div>
+
+      <!-- HOLDINGS TAB -->
+      <div data-id="42" id="tab-holdings" class="tab-content">
+        <div data-id="43" id="holdingsPlaceholder-w9x0" class="text-center py-20">
+          <div data-id="44" class="text-6xl mb-4">📈</div>
+          <h2 data-id="45" id="holdingsPlTitle-y1z2" class="text-xl font-semibold text-fg-400 mb-2">Select an ETF to View Holdings</h2>
+          <p data-id="46" class="text-fg-600 text-sm">Click any ETF card in the ETF Flow tab to drill down into its top 15 holdings</p>
+        </div>
+        <div data-id="47" id="holdingsContent-a3b4" class="hidden"></div>
+      </div>
+
+      <!-- ETF HEATMAP TAB -->
+      <div data-id="48" id="tab-heatmap" class="tab-content">
+        <h2 data-id="49" id="heatmapTitle-c5d6" class="text-lg font-bold mb-4">ETF Category Heatmap — Average Performance</h2>
+        <div data-id="50" id="heatmapGrid-e7f8" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6"></div>
+        <div data-id="51" class="bg-bg-800 border border-stroke-500 rounded-xl p-5">
+          <h3 data-id="52" id="chartTitle-g9h0" class="text-sm font-semibold text-fg-400 mb-4">Category Performance (%)</h3>
+          <div data-id="53" class="relative h-64 md:h-80">
+            <canvas data-id="54" id="heatmapChart-i1j2"></canvas>
           </div>
         </div>
-        <div data-id="44" class="card" style="overflow:auto;">
-          <table data-id="45" style="width:100%;border-collapse:collapse;font-size:14px;">
-            <thead data-id="46">
-              <tr data-id="47" style="border-bottom:1px solid #30363d;color:#8b949e;font-size:12px;">
-                <th data-id="48" id="sortSymbol" style="padding:12px 16px;text-align:left;cursor:pointer;">STOCK ↕</th>
-                <th data-id="49" style="padding:12px 16px;text-align:left;" class="desktop-only">SECTOR</th>
-                <th data-id="50" id="sortPrice" style="padding:12px 16px;text-align:right;cursor:pointer;">PRICE ↕</th>
-                <th data-id="51" id="sortChange" style="padding:12px 16px;text-align:right;cursor:pointer;">CHANGE ↕</th>
-                <th data-id="52" style="padding:12px 16px;text-align:right;" class="desktop-only">DAY RANGE</th>
-                <th data-id="53" style="padding:12px 16px;text-align:left;" class="desktop-only">INDUSTRY</th>
-                <th data-id="54" style="padding:12px 16px;text-align:center;">FLOW</th>
-              </tr>
-            </thead>
-            <tbody data-id="55" id="marketTableBody">
-              <tr data-id="56"><td data-id="57" colspan="7" style="padding:40px;text-align:center;color:#8b949e;">Loading growth leaders...</td></tr>
-            </tbody>
-          </table>
-        </div>
       </div>
 
-      <!-- SECTOR FLOW TAB -->
-      <div data-id="58" id="tab-sector" class="tab-content">
-        <h2 data-id="59" style="font-size:18px;font-weight:700;margin-bottom:16px;">Growth Sector Flow — Heatmap</h2>
-        <div data-id="60" id="sectorGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:28px;">
-          <div data-id="61" class="skeleton" style="height:100px;"></div>
-          <div data-id="62" class="skeleton" style="height:100px;"></div>
-          <div data-id="63" class="skeleton" style="height:100px;"></div>
-          <div data-id="64" class="skeleton" style="height:100px;"></div>
-          <div data-id="65" class="skeleton" style="height:100px;"></div>
-          <div data-id="66" class="skeleton" style="height:100px;"></div>
+      <!-- STOCK LOOKUP TAB -->
+      <div data-id="55" id="tab-stock" class="tab-content">
+        <div data-id="56" id="stockPlaceholder-k3l4" class="text-center py-20">
+          <div data-id="57" class="text-6xl mb-4">🔍</div>
+          <h2 data-id="58" class="text-xl font-semibold text-fg-400 mb-2">Search Any Stock</h2>
+          <p data-id="59" class="text-fg-600 text-sm">Use the search bar above to find any ticker or company name</p>
         </div>
-        <div data-id="67" class="card" style="padding:20px;">
-          <h3 data-id="68" style="font-size:15px;font-weight:600;margin-bottom:16px;color:#8b949e;">Growth Sector Performance Today (%)</h3>
-          <canvas data-id="69" id="sectorChart" style="max-height:280px;"></canvas>
-        </div>
-      </div>
-
-      <!-- STOCK DETAIL TAB -->
-      <div data-id="70" id="tab-stock" class="tab-content">
-        <div data-id="71" id="stockPlaceholder" style="text-align:center;padding:80px 20px;">
-          <div data-id="72" style="font-size:64px;margin-bottom:16px;">🔍</div>
-          <h2 data-id="73" style="font-size:20px;font-weight:600;color:#8b949e;margin-bottom:8px;">Select a Growth Stock to Analyze</h2>
-          <p data-id="74" style="color:#30363d;font-size:14px;">Search in the header, or click any stock in the Growth Leaders or Sector tabs</p>
-        </div>
-        <div data-id="75" id="stockDetail" class="hidden"></div>
+        <div data-id="60" id="stockDetail-m5n6" class="hidden"></div>
       </div>
 
     </main>
 
     <!-- Mobile bottom nav -->
-    <nav data-id="76" class="mobile-nav" style="position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;display:none;justify-content:space-around;padding:10px 0;z-index:50;">
-      <button data-id="77" data-mob="market" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#00d4aa;cursor:pointer;font-size:11px;font-weight:600;padding:4px 16px;">
-        <span data-id="78" style="font-size:22px;">🚀</span>Growth
+    <nav data-id="61" class="mobile-nav" style="position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;display:none;justify-content:space-around;padding:10px 0;z-index:50;">
+      <button data-id="62" data-mob="etf" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#00d4aa;cursor:pointer;font-size:11px;font-weight:600;padding:4px 12px;">
+        <span data-id="63" style="font-size:20px;">📊</span>ETFs
       </button>
-      <button data-id="79" data-mob="sector" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:11px;font-weight:600;padding:4px 16px;">
-        <span data-id="80" style="font-size:22px;">🌡️</span>Sectors
+      <button data-id="64" data-mob="holdings" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:11px;font-weight:600;padding:4px 12px;">
+        <span data-id="65" style="font-size:20px;">📈</span>Holdings
       </button>
-      <button data-id="81" data-mob="stock" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:11px;font-weight:600;padding:4px 16px;">
-        <span data-id="82" style="font-size:22px;">🔍</span>Stock
+      <button data-id="66" data-mob="heatmap" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:11px;font-weight:600;padding:4px 12px;">
+        <span data-id="67" style="font-size:20px;">🔥</span>Heatmap
+      </button>
+      <button data-id="68" data-mob="stock" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:11px;font-weight:600;padding:4px 12px;">
+        <span data-id="69" style="font-size:20px;">🔍</span>Stock
       </button>
     </nav>
 
-    <footer data-id="83" class="py-6 text-center" style="color:#8b949e;">
-      <p data-id="84" class="text-xs">Made by Copilot</p>
+    <footer data-id="70" class="py-6 text-center text-fg-400">
+      <p data-id="71" class="text-xs">Made by Copilot</p>
     </footer>
   </div>
 
   <script>
-document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") {
+    lucide.createIcons();
+  }
 
-  // ── STATE ──
-  var API_KEY = '';
-  var marketData = [];
-  var sectorData = [];
-  var sortCol = 'change';
-  var sortDir = -1;
-  var autoRefresh = false;
-  var refreshTimer = null;
-  var refreshSecondsLeft = 60;
-  var sectorChartInstance = null;
-  var searchDebounce = null;
-  var currentTab = 'market';
-  var watchlist = [];
+  (function() {
+    'use strict';
 
-  // ── 60 GROWTH-ORIENTED STOCKS across 8 growth sectors ──
-  var STOCKS = [
-    // Tech Growth (18)
-    'NVDA','MSFT','AAPL','GOOGL','META','AMD','AVGO','CRM','ADBE','NOW',
-    'SNOW','PLTR','NET','PANW','CRWD','DDOG','UBER','ORCL',
-    // Biotech & Health Innovation (8)
-    'LLY','ISRG','TMO','REGN','VRTX','DXCM','MRNA','ABBV',
-    // Consumer Growth (8)
-    'AMZN','TSLA','BKNG','CMG','LULU','MELI','ABNB','DECK',
-    // Fintech (6)
-    'V','MA','SQ','PYPL','COIN','NU',
-    // SaaS & Cloud (6)
-    'WDAY','HUBS','APP','DUOL','GTLB','MDB',
-    // Communication Growth (5)
-    'NFLX','SPOT','TTD','RBLX','PINS',
-    // Clean Energy (4)
-    'ENPH','FSLR','NEE','CEG',
-    // Industrial Growth (5)
-    'AXON','CPRT','ODFL','CSGP','GEHC'
-  ];
+    // ── STATE ──
+    var API_KEY = '';
+    var etfQuotes = {};
+    var etfLoadedCount = 0;
+    var etfLoading = false;
+    var holdingsQuotes = {};
+    var holdingsLoading = false;
+    var currentTab = 'etf';
+    var currentCatFilter = 'All';
+    var currentETF = null;
+    var autoRefresh = false;
+    var refreshTimer = null;
+    var refreshSecondsLeft = 300;
+    var heatmapChartInstance = null;
+    var searchDebounce = null;
 
-  // ── SECTOR MAPPING ──
-  function getSector(sym) {
-    var map = {
-      'NVDA':'Tech Growth','MSFT':'Tech Growth','AAPL':'Tech Growth','GOOGL':'Tech Growth','META':'Tech Growth','AMD':'Tech Growth','AVGO':'Tech Growth','CRM':'Tech Growth','ADBE':'Tech Growth','NOW':'Tech Growth','SNOW':'Tech Growth','PLTR':'Tech Growth','NET':'Tech Growth','PANW':'Tech Growth','CRWD':'Tech Growth','DDOG':'Tech Growth','UBER':'Tech Growth','ORCL':'Tech Growth',
-      'LLY':'Biotech & Health','ISRG':'Biotech & Health','TMO':'Biotech & Health','REGN':'Biotech & Health','VRTX':'Biotech & Health','DXCM':'Biotech & Health','MRNA':'Biotech & Health','ABBV':'Biotech & Health',
-      'AMZN':'Consumer Growth','TSLA':'Consumer Growth','BKNG':'Consumer Growth','CMG':'Consumer Growth','LULU':'Consumer Growth','MELI':'Consumer Growth','ABNB':'Consumer Growth','DECK':'Consumer Growth',
-      'V':'Fintech','MA':'Fintech','SQ':'Fintech','PYPL':'Fintech','COIN':'Fintech','NU':'Fintech',
-      'WDAY':'SaaS & Cloud','HUBS':'SaaS & Cloud','APP':'SaaS & Cloud','DUOL':'SaaS & Cloud','GTLB':'SaaS & Cloud','MDB':'SaaS & Cloud',
-      'NFLX':'Comm. Growth','SPOT':'Comm. Growth','TTD':'Comm. Growth','RBLX':'Comm. Growth','PINS':'Comm. Growth',
-      'ENPH':'Clean Energy','FSLR':'Clean Energy','NEE':'Clean Energy','CEG':'Clean Energy',
-      'AXON':'Industrial Growth','CPRT':'Industrial Growth','ODFL':'Industrial Growth','CSGP':'Industrial Growth','GEHC':'Industrial Growth'
+    // ── 40 ETFs ──
+    var ETF_DATA = {
+      'SPY':  { name:'SPDR S&P 500 ETF',             cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','BRK-B','JPM','LLY','V','UNH','COST','XOM'] },
+      'QQQ':  { name:'Invesco Nasdaq 100',            cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','COST','ADBE','AMD','PEP','NFLX','QCOM','INTU'] },
+      'VUG':  { name:'Vanguard Growth ETF',           cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','LLY','COST','V','UNH','ADBE','AMD','CRM'] },
+      'IWF':  { name:'iShares Russell 1000 Growth',   cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','LLY','V','UNH','ADBE','COST','AMD','CRM'] },
+      'SCHG': { name:'Schwab US Large-Cap Growth',    cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','LLY','V','ADBE','AMD','COST','UNH','CRM'] },
+      'MGK':  { name:'Vanguard Mega Cap Growth',      cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','LLY','COST','V','UNH','ADBE','AMD','CRM'] },
+      'SPYG': { name:'SPDR S&P 500 Growth',           cat:'Broad Growth',    holdings:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','LLY','V','ADBE','COST','AMD','UNH','CRM'] },
+      'VGT':  { name:'Vanguard Info Technology',      cat:'Tech & Semis',    holdings:['MSFT','AAPL','NVDA','AVGO','AMD','QCOM','TXN','CRM','ORCL','INTC','ADBE','NOW','AMAT','PANW','ADI'] },
+      'XLK':  { name:'Technology Select Sector',      cat:'Tech & Semis',    holdings:['MSFT','AAPL','NVDA','AVGO','AMD','QCOM','TXN','ORCL','CRM','INTC','ADBE','NOW','AMAT','PANW','ADI'] },
+      'SMH':  { name:'VanEck Semiconductor ETF',      cat:'Tech & Semis',    holdings:['NVDA','AVGO','AMD','QCOM','TXN','INTC','AMAT','KLAC','LRCX','MCHP','ON','MPWR','MRVL','SWKS','TER'] },
+      'SOXX': { name:'iShares Semiconductor ETF',     cat:'Tech & Semis',    holdings:['NVDA','AVGO','AMD','QCOM','TXN','INTC','AMAT','KLAC','LRCX','MCHP','ON','ADI','MRVL','SWKS','NXPI'] },
+      'IGV':  { name:'iShares Tech-Software ETF',     cat:'Tech & Semis',    holdings:['MSFT','ORCL','CRM','ADBE','NOW','PANW','INTU','SNPS','CDNS','ANSS','DDOG','WDAY','HUBS','TEAM','MDB'] },
+      'AIQ':  { name:'Global X AI & Technology',      cat:'Tech & Semis',    holdings:['NVDA','MSFT','GOOGL','META','AAPL','AMZN','AMD','CRM','IBM','ORCL','BIDU','SAP','PLTR','SNOW','DDOG'] },
+      'ARKK': { name:'ARK Innovation ETF',            cat:'ARK',             holdings:['TSLA','COIN','ROKU','HOOD','EXAS','RXRX','PACB','NTLA','IOVA','CRSP','PATH','TWLO','SHOP','RBLX','DKNG'] },
+      'ARKW': { name:'ARK Next Gen Internet',         cat:'ARK',             holdings:['TSLA','COIN','RBLX','HOOD','NVDA','META','AMZN','GOOGL','SHOP','SPOT','TWLO','ROKU','DKNG','MELI','SQ'] },
+      'ARKQ': { name:'ARK Autonomous Tech',           cat:'ARK',             holdings:['TSLA','KTOS','PATH','TRMB','AVAV','UNP','DDD','AGCO','TER','KRTO','LMT','RKLB','JOBY','ACHR','HON'] },
+      'ARKG': { name:'ARK Genomic Revolution',        cat:'ARK',             holdings:['RXRX','CRSP','NTLA','PACB','CDNA','EXAS','NVTA','VCYT','IOVA','FATE','BEAM','EDIT','SRPT','TWST','ARQT'] },
+      'ARKF': { name:'ARK Fintech Innovation',        cat:'ARK',             holdings:['COIN','SQ','HOOD','MELI','ROKU','ICE','PYPL','SOFI','NU','AFRM','UPST','GPN','NTAP','SHOP','GDOT'] },
+      'XLV':  { name:'Health Care Select Sector',     cat:'Healthcare',      holdings:['UNH','JNJ','LLY','ABBV','MRK','PFE','TMO','ABT','AMGN','ISRG','MDT','GILD','CVS','REGN','CI'] },
+      'IBB':  { name:'iShares Biotech ETF',           cat:'Healthcare',      holdings:['AMGN','GILD','REGN','VRTX','MRNA','BIIB','ILMN','ALNY','BMRN','EXAS','RARE','SRPT','IONS','ACAD','NBIX'] },
+      'XBI':  { name:'SPDR S&P Biotech ETF',          cat:'Healthcare',      holdings:['MRNA','EXAS','ALNY','SRPT','ACAD','IONS','RCKT','RARE','VRTX','KRYS','PRTA','BEAM','EDIT','NTLA','ARQT'] },
+      'XLY':  { name:'Consumer Disc. Select Sector',  cat:'Consumer',        holdings:['AMZN','TSLA','HD','MCD','NKE','SBUX','LOW','TJX','BKNG','CMG','ORLY','ABNB','GM','F','EBAY'] },
+      'XLC':  { name:'Communication Services',        cat:'Consumer',        holdings:['META','GOOGL','NFLX','CMCSA','T','VZ','DIS','TTWO','EA','PINS','SNAP','SPOT','MTCH','WBD','IPG'] },
+      'ICLN': { name:'iShares Global Clean Energy',   cat:'Clean Energy',    holdings:['ENPH','NEE','FSLR','CEG','BEP','CWEN','RUN','PLUG','SEDG','ORA','VWSYF','RNECY','TPIC','ARRY','AY'] },
+      'TAN':  { name:'Invesco Solar ETF',             cat:'Clean Energy',    holdings:['FSLR','ENPH','CSIQ','ARRY','SEDG','SPWR','RUN','SHLS','NXT','NOVA','DQ','JKS','ORA','MAXN','POWI'] },
+      'QCLN': { name:'Clean Edge Green Energy',       cat:'Clean Energy',    holdings:['TSLA','ENPH','ON','FSLR','BEP','CEG','CWEN','NXT','ITRI','NOVA','RUN','HASI','ARRY','SEDG','AY'] },
+      'BUG':  { name:'Global X Cybersecurity ETF',    cat:'Cybersecurity',   holdings:['PANW','CRWD','FTNT','ZS','OKTA','NET','TENB','S','CYBR','QLYS','RDWR','CHKP','AKAM','VRNS','SAIL'] },
+      'CIBR': { name:'First Trust Cybersecurity',     cat:'Cybersecurity',   holdings:['PANW','CRWD','FTNT','ZS','OKTA','NET','TENB','S','CYBR','QLYS','AKAM','CHKP','VRNS','SAIL','EVTC'] },
+      'BOTZ': { name:'Global X Robotics & AI',        cat:'AI & Robotics',   holdings:['NVDA','ISRG','ABB','IRBT','PATH','FANUY','KION','BRKS','NNDM','ZURN','AXT','VNET','ACMR','ONTO','MKSI'] },
+      'ROBO': { name:'ROBO Global Robotics ETF',      cat:'AI & Robotics',   holdings:['ISRG','NVDA','PATH','IRBT','TER','BRKS','ONTO','MKSI','NOVT','ACMR','ICAD','NNDM','VNET','SMTC','KTOS'] },
+      'CLOU': { name:'Global X Cloud Computing',      cat:'Cloud & SaaS',    holdings:['TWLO','WDAY','NOW','VEEV','ZM','OKTA','DDOG','MDB','SNOW','NET','ZS','HUBS','TEAM','BOX','DOCN'] },
+      'WCLD': { name:'WisdomTree Cloud Computing',    cat:'Cloud & SaaS',    holdings:['TWLO','WDAY','NOW','VEEV','DDOG','MDB','SNOW','NET','ZS','PANW','HUBS','TEAM','DOCN','ESTC','SUMO'] },
+      'FINX': { name:'Global X FinTech ETF',          cat:'Fintech',         holdings:['SQ','PYPL','V','MA','COIN','SOFI','NU','AFRM','HOOD','UPST','ADYEN','INTU','GPN','FISV','FIS'] },
+      'VIG':  { name:'Vanguard Dividend Appreciation', cat:'Dividend Growth', holdings:['MSFT','AAPL','JPM','V','JNJ','HD','COST','PG','AVGO','AMGN','ABBV','TXN','SHW','SPGI','LOW'] },
+      'DGRO': { name:'iShares Dividend Growth ETF',   cat:'Dividend Growth', holdings:['MSFT','AAPL','JPM','V','JNJ','HD','COST','PG','ABBV','TXN','BMY','MRK','AMGN','WMT','CVX'] },
+      'DGRW': { name:'WisdomTree Quality Dividend',   cat:'Dividend Growth', holdings:['MSFT','AAPL','NVDA','META','GOOGL','AMZN','JPM','UNH','V','PG','JNJ','ABBV','XOM','AVGO','HD'] },
+      'NOBL': { name:'S&P 500 Dividend Aristocrats',  cat:'Dividend Growth', holdings:['ABBV','KO','PG','JNJ','MMM','ADP','WMT','CL','CINF','EMR','T','NUE','SWK','PBCT','GPC'] },
+      'SDY':  { name:'SPDR S&P Dividend ETF',         cat:'Dividend Growth', holdings:['ABBV','PG','KO','MMM','XOM','CVX','IBM','GPC','CINF','T','PBCT','NUE','SWK','LOW','BDX'] },
+      'DRIV': { name:'Global X Autonomous Vehicles',  cat:'AI & Robotics',   holdings:['TSLA','NVDA','GOOGL','QCOM','APTV','LEA','MBLY','LAZR','OUST','LIDR','INVZ','AEVA','VLDR','GM','F'] },
+      'ARKX': { name:'ARK Space Exploration',         cat:'ARK',             holdings:['TSLA','LMT','KTOS','RKLB','JOBY','ACHR','ASTR','SPCE','HON','TER','AVAV','BA','GNSS','RBC','NOC'] }
     };
-    return map[sym] || '—';
-  }
 
-  // ── SAMPLE QUOTE DATA for 60 growth stocks (simulates /quote endpoint) ──
-  var SAMPLE_QUOTES = {
-    'NVDA': { c:132.65, h:134.20, l:127.80, pc:128.28 },
-    'MSFT': { c:412.35, h:414.10, l:408.50, pc:408.51 },
-    'AAPL': { c:178.52, h:179.90, l:176.20, pc:175.33 },
-    'GOOGL': { c:167.89, h:169.40, l:166.10, pc:168.77 },
-    'META': { c:568.12, h:572.40, l:558.30, pc:558.45 },
-    'AMD': { c:162.55, h:167.30, l:161.40, pc:165.49 },
-    'AVGO': { c:168.42, h:170.10, l:163.50, pc:163.72 },
-    'CRM': { c:268.45, h:271.80, l:265.20, pc:267.10 },
-    'ADBE': { c:524.30, h:528.40, l:518.60, pc:520.80 },
-    'NOW': { c:782.40, h:790.20, l:775.60, pc:778.30 },
-    'SNOW': { c:148.35, h:152.80, l:146.20, pc:150.10 },
-    'PLTR': { c:24.82, h:25.40, l:24.20, pc:24.05 },
-    'NET': { c:82.15, h:83.90, l:80.60, pc:81.20 },
-    'PANW': { c:298.70, h:302.40, l:294.80, pc:296.50 },
-    'CRWD': { c:312.45, h:318.20, l:308.60, pc:305.80 },
-    'DDOG': { c:118.72, h:121.40, l:116.80, pc:115.90 },
-    'UBER': { c:72.45, h:73.80, l:71.20, pc:71.60 },
-    'ORCL': { c:142.80, h:144.20, l:140.60, pc:141.50 },
-    'LLY': { c:762.40, h:770.80, l:755.20, pc:748.60 },
-    'ISRG': { c:382.65, h:388.40, l:378.20, pc:376.40 },
-    'TMO': { c:548.20, h:555.40, l:542.80, pc:545.60 },
-    'REGN': { c:842.30, h:850.60, l:835.40, pc:838.90 },
-    'VRTX': { c:412.85, h:418.20, l:408.60, pc:406.40 },
-    'DXCM': { c:92.45, h:94.80, l:90.20, pc:93.80 },
-    'MRNA': { c:108.62, h:112.40, l:105.80, pc:110.20 },
-    'ABBV': { c:168.25, h:170.40, l:166.80, pc:167.50 },
-    'AMZN': { c:192.44, h:193.80, l:188.20, pc:188.39 },
-    'TSLA': { c:248.30, h:255.60, l:246.80, pc:254.25 },
-    'BKNG': { c:3485.20, h:3520.40, l:3448.60, pc:3460.80 },
-    'CMG': { c:2148.40, h:2175.80, l:2120.60, pc:2135.20 },
-    'LULU': { c:398.45, h:404.20, l:394.60, pc:392.80 },
-    'MELI': { c:1645.80, h:1672.40, l:1628.60, pc:1618.40 },
-    'ABNB': { c:148.65, h:152.40, l:146.20, pc:145.80 },
-    'DECK': { c:712.40, h:720.80, l:705.60, pc:698.20 },
-    'V': { c:281.65, h:283.20, l:278.90, pc:279.08 },
-    'MA': { c:468.15, h:470.80, l:462.40, pc:462.97 },
-    'SQ': { c:72.85, h:74.60, l:71.20, pc:70.40 },
-    'PYPL': { c:68.42, h:69.80, l:67.10, pc:69.20 },
-    'COIN': { c:182.65, h:188.40, l:178.20, pc:175.80 },
-    'NU': { c:12.48, h:12.80, l:12.10, pc:12.05 },
-    'WDAY': { c:262.45, h:268.20, l:258.60, pc:265.80 },
-    'HUBS': { c:582.40, h:590.80, l:575.60, pc:572.40 },
-    'APP': { c:88.65, h:90.40, l:86.80, pc:85.20 },
-    'DUOL': { c:198.42, h:202.80, l:195.60, pc:192.40 },
-    'GTLB': { c:58.25, h:59.80, l:57.10, pc:56.40 },
-    'MDB': { c:368.45, h:374.20, l:362.80, pc:372.60 },
-    'NFLX': { c:698.20, h:702.50, l:688.40, pc:688.97 },
-    'SPOT': { c:182.45, h:186.80, l:179.20, pc:178.40 },
-    'TTD': { c:88.62, h:90.40, l:86.80, pc:86.20 },
-    'RBLX': { c:42.85, h:44.20, l:41.60, pc:41.20 },
-    'PINS': { c:32.45, h:33.20, l:31.80, pc:31.60 },
-    'ENPH': { c:128.65, h:132.40, l:125.80, pc:130.20 },
-    'FSLR': { c:192.45, h:198.20, l:188.60, pc:186.40 },
-    'NEE': { c:72.45, h:73.20, l:71.80, pc:73.10 },
-    'CEG': { c:168.42, h:172.80, l:165.60, pc:162.40 },
-    'AXON': { c:242.65, h:248.40, l:238.80, pc:235.20 },
-    'CPRT': { c:48.85, h:49.60, l:48.10, pc:47.40 },
-    'ODFL': { c:408.45, h:414.20, l:404.60, pc:412.80 },
-    'CSGP': { c:82.42, h:84.20, l:81.10, pc:80.60 },
-    'GEHC': { c:78.65, h:80.20, l:77.40, pc:76.80 }
-  };
+    var ETF_TICKERS = Object.keys(ETF_DATA);
 
-  // ── COMPANY NAME LOOKUP ──
-  var COMPANY_NAMES = {
-    'NVDA':'NVIDIA Corp','MSFT':'Microsoft Corp','AAPL':'Apple Inc','GOOGL':'Alphabet Inc','META':'Meta Platforms','AMD':'Advanced Micro Devices','AVGO':'Broadcom Inc','CRM':'Salesforce Inc','ADBE':'Adobe Inc','NOW':'ServiceNow Inc',
-    'SNOW':'Snowflake Inc','PLTR':'Palantir Technologies','NET':'Cloudflare Inc','PANW':'Palo Alto Networks','CRWD':'CrowdStrike Holdings','DDOG':'Datadog Inc','UBER':'Uber Technologies','ORCL':'Oracle Corp',
-    'LLY':'Eli Lilly','ISRG':'Intuitive Surgical','TMO':'Thermo Fisher Scientific','REGN':'Regeneron Pharma','VRTX':'Vertex Pharmaceuticals','DXCM':'DexCom Inc','MRNA':'Moderna Inc','ABBV':'AbbVie Inc',
-    'AMZN':'Amazon.com Inc','TSLA':'Tesla Inc','BKNG':'Booking Holdings','CMG':'Chipotle Mexican Grill','LULU':'Lululemon Athletica','MELI':'MercadoLibre Inc','ABNB':'Airbnb Inc','DECK':'Deckers Outdoor',
-    'V':'Visa Inc','MA':'Mastercard Inc','SQ':'Block Inc','PYPL':'PayPal Holdings','COIN':'Coinbase Global','NU':'Nu Holdings',
-    'WDAY':'Workday Inc','HUBS':'HubSpot Inc','APP':'AppLovin Corp','DUOL':'Duolingo Inc','GTLB':'GitLab Inc','MDB':'MongoDB Inc',
-    'NFLX':'Netflix Inc','SPOT':'Spotify Technology','TTD':'The Trade Desk','RBLX':'Roblox Corp','PINS':'Pinterest Inc',
-    'ENPH':'Enphase Energy','FSLR':'First Solar Inc','NEE':'NextEra Energy','CEG':'Constellation Energy',
-    'AXON':'Axon Enterprise','CPRT':'Copart Inc','ODFL':'Old Dominion Freight','CSGP':'CoStar Group','GEHC':'GE HealthCare'
-  };
+    var CATEGORIES = ['All','Broad Growth','Tech & Semis','ARK','Healthcare','Consumer','Clean Energy','Cybersecurity','AI & Robotics','Cloud & SaaS','Fintech','Dividend Growth'];
 
-  // ── EXTENDED SEARCH DATABASE ──
-  var SEARCH_DB = {};
-  STOCKS.forEach(function(sym) {
-    SEARCH_DB[sym] = { symbol: sym, description: COMPANY_NAMES[sym] || sym, type: 'Common Stock' };
-  });
-  var EXTRA_SEARCH = {
-    'RIVN':'Rivian Automotive','LCID':'Lucid Group','SOFI':'SoFi Technologies','ROKU':'Roku Inc',
-    'ZM':'Zoom Video Comm.','DOCU':'DocuSign Inc','ZS':'Zscaler Inc','OKTA':'Okta Inc','TWLO':'Twilio Inc',
-    'DASH':'DoorDash Inc','HOOD':'Robinhood Markets','AFRM':'Affirm Holdings',
-    'PATH':'UiPath Inc','GRAB':'Grab Holdings','SE':'Sea Limited','BABA':'Alibaba Group','JD':'JD.com Inc',
-    'PDD':'PDD Holdings','NIO':'NIO Inc','XPEV':'XPeng Inc','LI':'Li Auto Inc','TSM':'Taiwan Semiconductor',
-    'ASML':'ASML Holding','MRVL':'Marvell Technology','MU':'Micron Technology','LRCX':'Lam Research','AMAT':'Applied Materials',
-    'KLAC':'KLA Corp','ON':'ON Semiconductor','SWKS':'Skyworks Solutions','SMCI':'Super Micro Computer','ARM':'Arm Holdings',
-    'WBD':'Warner Bros Discovery','PARA':'Paramount Global','SNAP':'Snap Inc',
-    'MTCH':'Match Group','EA':'Electronic Arts','TTWO':'Take-Two Interactive',
-    'JPM':'JPMorgan Chase','BAC':'Bank of America','WFC':'Wells Fargo','GS':'Goldman Sachs',
-    'XOM':'Exxon Mobil','CVX':'Chevron Corp','WMT':'Walmart Inc','PG':'Procter & Gamble',
-    'KO':'Coca-Cola Co','PEP':'PepsiCo Inc','JNJ':'Johnson & Johnson','UNH':'UnitedHealth Group',
-    'HD':'Home Depot','CAT':'Caterpillar Inc','BA':'Boeing Co','DIS':'Walt Disney Co',
-    'INTC':'Intel Corp','QCOM':'Qualcomm Inc','TXN':'Texas Instruments','SHOP':'Shopify Inc'
-  };
-  Object.keys(EXTRA_SEARCH).forEach(function(sym) {
-    SEARCH_DB[sym] = { symbol: sym, description: EXTRA_SEARCH[sym], type: 'Common Stock' };
-  });
+    var CAT_COLORS = {
+      'Broad Growth': '#3b82f6',
+      'Tech & Semis': '#8b5cf6',
+      'ARK': '#f59e0b',
+      'Healthcare': '#10b981',
+      'Consumer': '#f97316',
+      'Clean Energy': '#22c55e',
+      'Cybersecurity': '#ef4444',
+      'AI & Robotics': '#06b6d4',
+      'Cloud & SaaS': '#a78bfa',
+      'Fintech': '#eab308',
+      'Dividend Growth': '#6b7280'
+    };
 
-  // ── SAMPLE SECTOR DATA (8 growth sectors) ──
-  var SECTORS = [
-    { etf:'XLK', name:'Tech Growth', emoji:'💻', price:214.80, change:1.45 },
-    { etf:'XBI', name:'Biotech & Health', emoji:'🧬', price:98.65, change:0.88 },
-    { etf:'XLY', name:'Consumer Growth', emoji:'🛍️', price:196.45, change:0.38 },
-    { etf:'FINX', name:'Fintech', emoji:'💳', price:42.65, change:1.12 },
-    { etf:'WCLD', name:'SaaS & Cloud', emoji:'☁️', price:32.80, change:1.75 },
-    { etf:'XLC', name:'Comm. Growth', emoji:'📡', price:82.56, change:0.55 },
-    { etf:'QCLN', name:'Clean Energy', emoji:'⚡', price:48.92, change:-0.68 },
-    { etf:'ARKK', name:'Industrial Growth', emoji:'🏗️', price:52.40, change:0.92 }
-  ];
+    // ── SAMPLE ETF QUOTES ──
+    var SAMPLE_ETF_QUOTES = {
+      'SPY':  { c:582.40, pc:578.20 }, 'QQQ':  { c:498.65, pc:494.30 }, 'VUG':  { c:372.80, pc:370.10 },
+      'IWF':  { c:345.20, pc:342.80 }, 'SCHG': { c:98.45, pc:97.60 },   'MGK':  { c:298.60, pc:296.40 },
+      'SPYG': { c:82.35, pc:81.70 },   'VGT':  { c:578.90, pc:572.40 }, 'XLK':  { c:214.80, pc:211.60 },
+      'SMH':  { c:248.60, pc:244.20 }, 'SOXX': { c:242.80, pc:238.50 }, 'IGV':  { c:92.45, pc:91.20 },
+      'AIQ':  { c:38.60, pc:37.90 },   'ARKK': { c:52.40, pc:53.20 },   'ARKW': { c:78.65, pc:79.40 },
+      'ARKQ': { c:62.80, pc:62.10 },   'ARKG': { c:28.45, pc:29.20 },   'ARKF': { c:32.60, pc:32.10 },
+      'XLV':  { c:148.20, pc:147.40 }, 'IBB':  { c:138.60, pc:137.80 }, 'XBI':  { c:98.65, pc:97.40 },
+      'XLY':  { c:196.45, pc:195.20 }, 'XLC':  { c:82.56, pc:81.90 },
+      'ICLN': { c:14.80, pc:15.10 },   'TAN':  { c:42.60, pc:43.40 },   'QCLN': { c:38.20, pc:38.80 },
+      'BUG':  { c:32.80, pc:32.20 },   'CIBR': { c:52.45, pc:51.60 },
+      'BOTZ': { c:32.40, pc:31.80 },   'ROBO': { c:58.60, pc:57.90 },
+      'CLOU': { c:22.80, pc:22.40 },   'WCLD': { c:32.80, pc:32.20 },
+      'FINX': { c:28.60, pc:28.20 },
+      'VIG':  { c:182.40, pc:181.60 }, 'DGRO': { c:58.80, pc:58.40 },   'DGRW': { c:78.60, pc:78.20 },
+      'NOBL': { c:98.40, pc:98.80 },   'SDY':  { c:132.60, pc:133.20 },
+      'DRIV': { c:32.80, pc:32.40 },   'ARKX': { c:18.40, pc:18.60 }
+    };
 
-  // ── STOCK DETAIL EXTENDED DATA ──
-  var STOCK_DETAILS = {
-    'NVDA': { w52High: 152.89, w52Low: 76.50, beta: 1.68, mktCap: 3250000000000, exchange:'NASDAQ', country:'US', weburl:'nvidia.com' },
-    'MSFT': { w52High: 430.82, w52Low: 332.80, beta: 0.89, mktCap: 3060000000000, exchange:'NASDAQ', country:'US', weburl:'microsoft.com' },
-    'AAPL': { w52High: 199.62, w52Low: 143.90, beta: 1.24, mktCap: 2780000000000, exchange:'NASDAQ', country:'US', weburl:'apple.com' },
-    'GOOGL': { w52High: 182.30, w52Low: 130.67, beta: 1.05, mktCap: 2080000000000, exchange:'NASDAQ', country:'US', weburl:'abc.xyz' },
-    'META': { w52High: 590.51, w52Low: 390.42, beta: 1.22, mktCap: 1440000000000, exchange:'NASDAQ', country:'US', weburl:'meta.com' },
-    'AMD': { w52High: 187.40, w52Low: 120.50, beta: 1.58, mktCap: 262000000000, exchange:'NASDAQ', country:'US', weburl:'amd.com' },
-    'AVGO': { w52High: 185.20, w52Low: 120.80, beta: 1.32, mktCap: 780000000000, exchange:'NASDAQ', country:'US', weburl:'broadcom.com' },
-    'CRM': { w52High: 298.80, w52Low: 215.40, beta: 1.18, mktCap: 260000000000, exchange:'NYSE', country:'US', weburl:'salesforce.com' },
-    'ADBE': { w52High: 570.80, w52Low: 432.60, beta: 1.25, mktCap: 240000000000, exchange:'NASDAQ', country:'US', weburl:'adobe.com' },
-    'NOW': { w52High: 820.40, w52Low: 620.80, beta: 1.15, mktCap: 158000000000, exchange:'NYSE', country:'US', weburl:'servicenow.com' },
-    'SNOW': { w52High: 192.40, w52Low: 120.80, beta: 1.45, mktCap: 48000000000, exchange:'NYSE', country:'US', weburl:'snowflake.com' },
-    'PLTR': { w52High: 28.60, w52Low: 14.80, beta: 1.62, mktCap: 52000000000, exchange:'NYSE', country:'US', weburl:'palantir.com' },
-    'NET': { w52High: 98.40, w52Low: 55.80, beta: 1.48, mktCap: 28000000000, exchange:'NYSE', country:'US', weburl:'cloudflare.com' },
-    'PANW': { w52High: 340.80, w52Low: 235.60, beta: 1.18, mktCap: 92000000000, exchange:'NASDAQ', country:'US', weburl:'paloaltonetworks.com' },
-    'CRWD': { w52High: 365.20, w52Low: 218.40, beta: 1.35, mktCap: 75000000000, exchange:'NASDAQ', country:'US', weburl:'crowdstrike.com' },
-    'DDOG': { w52High: 138.60, w52Low: 82.40, beta: 1.42, mktCap: 38000000000, exchange:'NASDAQ', country:'US', weburl:'datadoghq.com' },
-    'UBER': { w52High: 82.40, w52Low: 48.60, beta: 1.38, mktCap: 148000000000, exchange:'NYSE', country:'US', weburl:'uber.com' },
-    'ORCL': { w52High: 155.40, w52Low: 102.80, beta: 0.96, mktCap: 392000000000, exchange:'NYSE', country:'US', weburl:'oracle.com' },
-    'LLY': { w52High: 810.20, w52Low: 548.40, beta: 0.78, mktCap: 720000000000, exchange:'NYSE', country:'US', weburl:'lilly.com' },
-    'ISRG': { w52High: 420.60, w52Low: 298.80, beta: 1.02, mktCap: 135000000000, exchange:'NASDAQ', country:'US', weburl:'intuitive.com' },
-    'TMO': { w52High: 580.40, w52Low: 450.60, beta: 0.82, mktCap: 215000000000, exchange:'NYSE', country:'US', weburl:'thermofisher.com' },
-    'REGN': { w52High: 920.80, w52Low: 710.40, beta: 0.45, mktCap: 92000000000, exchange:'NASDAQ', country:'US', weburl:'regeneron.com' },
-    'VRTX': { w52High: 458.20, w52Low: 338.60, beta: 0.42, mktCap: 105000000000, exchange:'NASDAQ', country:'US', weburl:'vrtx.com' },
-    'AMZN': { w52High: 201.20, w52Low: 151.61, beta: 1.14, mktCap: 1990000000000, exchange:'NASDAQ', country:'US', weburl:'amazon.com' },
-    'TSLA': { w52High: 299.29, w52Low: 182.10, beta: 2.05, mktCap: 790000000000, exchange:'NASDAQ', country:'US', weburl:'tesla.com' },
-    'BKNG': { w52High: 3680.40, w52Low: 2850.60, beta: 1.28, mktCap: 128000000000, exchange:'NASDAQ', country:'US', weburl:'bookingholdings.com' },
-    'CMG': { w52High: 2380.60, w52Low: 1780.40, beta: 1.22, mktCap: 58000000000, exchange:'NYSE', country:'US', weburl:'chipotle.com' },
-    'LULU': { w52High: 462.80, w52Low: 312.40, beta: 1.35, mktCap: 48000000000, exchange:'NASDAQ', country:'US', weburl:'lululemon.com' },
-    'MELI': { w52High: 1820.40, w52Low: 1180.60, beta: 1.52, mktCap: 82000000000, exchange:'NASDAQ', country:'US', weburl:'mercadolibre.com' },
-    'V': { w52High: 295.80, w52Low: 248.60, beta: 0.94, mktCap: 555000000000, exchange:'NYSE', country:'US', weburl:'visa.com' },
-    'MA': { w52High: 490.20, w52Low: 398.60, beta: 1.10, mktCap: 435000000000, exchange:'NYSE', country:'US', weburl:'mastercard.com' },
-    'SQ': { w52High: 88.40, w52Low: 48.20, beta: 2.18, mktCap: 42000000000, exchange:'NYSE', country:'US', weburl:'block.xyz' },
-    'COIN': { w52High: 225.60, w52Low: 98.40, beta: 2.85, mktCap: 42000000000, exchange:'NASDAQ', country:'US', weburl:'coinbase.com' },
-    'NFLX': { w52High: 725.80, w52Low: 542.10, beta: 1.35, mktCap: 305000000000, exchange:'NASDAQ', country:'US', weburl:'netflix.com' },
-    'SPOT': { w52High: 218.40, w52Low: 128.60, beta: 1.55, mktCap: 35000000000, exchange:'NYSE', country:'US', weburl:'spotify.com' },
-    'ENPH': { w52High: 175.80, w52Low: 82.40, beta: 1.82, mktCap: 17000000000, exchange:'NASDAQ', country:'US', weburl:'enphase.com' },
-    'FSLR': { w52High: 232.40, w52Low: 142.80, beta: 1.48, mktCap: 20000000000, exchange:'NASDAQ', country:'US', weburl:'firstsolar.com' },
-    'NEE': { w52High: 82.40, w52Low: 55.80, beta: 0.65, mktCap: 148000000000, exchange:'NYSE', country:'US', weburl:'nexteraenergy.com' },
-    'CEG': { w52High: 198.40, w52Low: 108.60, beta: 1.12, mktCap: 52000000000, exchange:'NASDAQ', country:'US', weburl:'constellationenergy.com' },
-    'AXON': { w52High: 278.40, w52Low: 178.60, beta: 1.28, mktCap: 18000000000, exchange:'NASDAQ', country:'US', weburl:'axon.com' },
-    'CPRT': { w52High: 52.80, w52Low: 38.40, beta: 0.95, mktCap: 47000000000, exchange:'NASDAQ', country:'US', weburl:'copart.com' },
-    'ODFL': { w52High: 445.80, w52Low: 348.60, beta: 1.02, mktCap: 42000000000, exchange:'NASDAQ', country:'US', weburl:'odfl.com' },
-    'MDB': { w52High: 418.60, w52Low: 248.40, beta: 1.52, mktCap: 26000000000, exchange:'NASDAQ', country:'US', weburl:'mongodb.com' },
-    'HUBS': { w52High: 648.20, w52Low: 408.60, beta: 1.62, mktCap: 30000000000, exchange:'NYSE', country:'US', weburl:'hubspot.com' },
-    'ABNB': { w52High: 172.40, w52Low: 112.80, beta: 1.45, mktCap: 95000000000, exchange:'NASDAQ', country:'US', weburl:'airbnb.com' },
-    'DECK': { w52High: 758.40, w52Low: 488.60, beta: 1.18, mktCap: 20000000000, exchange:'NYSE', country:'US', weburl:'deckers.com' }
-  };
+    // ── SAMPLE STOCK QUOTES (for holdings) ──
+    var SAMPLE_STOCK_QUOTES = {
+      'AAPL':178.52,'MSFT':412.35,'NVDA':132.65,'AMZN':192.44,'META':568.12,'GOOGL':167.89,'TSLA':248.30,
+      'AVGO':168.42,'LLY':762.40,'V':281.65,'UNH':548.20,'ADBE':524.30,'AMD':162.55,'CRM':268.45,
+      'COST':612.40,'QCOM':168.20,'TXN':172.80,'ORCL':142.80,'INTC':42.60,'NOW':782.40,'AMAT':182.60,
+      'PANW':298.70,'ADI':192.40,'INTU':628.40,'SNPS':518.60,'CDNS':282.40,'ANSS':342.60,
+      'DDOG':118.72,'WDAY':262.45,'HUBS':582.40,'TEAM':242.60,'MDB':368.45,
+      'NFLX':698.20,'PEP':182.40,'COIN':182.65,'ROKU':68.40,'HOOD':18.60,'SHOP':82.40,
+      'RBLX':42.85,'DKNG':38.60,'SQ':72.85,'PYPL':68.42,'SPOT':182.45,'MELI':1645.80,
+      'TWLO':72.40,'PATH':22.60,'PLTR':24.82,'SNOW':148.35,
+      'ISRG':382.65,'JNJ':162.40,'ABBV':168.25,'MRK':118.60,'PFE':28.40,'TMO':548.20,
+      'ABT':112.40,'AMGN':298.60,'GILD':82.40,'REGN':842.30,'VRTX':412.85,'MRNA':108.62,
+      'HD':382.40,'MCD':298.60,'NKE':108.40,'SBUX':98.60,'LOW':252.40,'TJX':98.20,
+      'BKNG':3485.20,'CMG':2148.40,'ABNB':148.65,'GM':42.60,'F':12.40,
+      'CMCSA':42.80,'T':18.60,'VZ':38.40,'DIS':98.60,'TTWO':162.40,'EA':138.60,
+      'PINS':32.45,'SNAP':12.40,'MTCH':38.60,'WBD':12.80,
+      'ENPH':128.65,'NEE':72.45,'FSLR':192.45,'CEG':168.42,'RUN':18.60,'PLUG':4.80,
+      'ON':72.40,'CRWD':312.45,'FTNT':68.40,'ZS':218.60,'OKTA':92.40,'NET':82.15,
+      'IRBT':42.60,'TER':112.40,'BRKS':82.60,'KTOS':22.40,
+      'ZM':72.40,'BOX':28.60,
+      'MA':468.15,'NU':12.48,'SOFI':8.80,'AFRM':32.60,'UPST':28.40,
+      'FISV':152.40,'FIS':68.40,'GPN':128.60,'INTU':628.40,
+      'JPM':198.60,'PG':162.40,'KO':62.40,'WMT':168.40,'CVX':162.40,'XOM':112.40,
+      'IBM':188.60,'ADP':262.40,'CL':82.40,'MMM':108.40,'EMR':98.60,'BDX':248.60,
+      'SHW':342.60,'SPGI':448.60,'BMY':52.40,'NUE':172.40,
+      'LMT':468.40,'HON':212.40,'BA':228.60,'NOC':478.40,
+      'BRK-B':412.60,'MDT':82.40,'CVS':78.60,'CI':342.60,
+      'BIIB':228.60,'ILMN':142.40,'ALNY':198.60,'BMRN':92.40,
+      'LRCX':82.40,'KLAC':628.40,'MCHP':82.40,'MPWR':628.40,'MRVL':68.40,'SWKS':108.60,'NXPI':242.40,
+      'IPG':32.40,'ORLY':998.40,'EBAY':48.60,
+      'ICE':128.60,'NTAP':98.60,'GDOT':12.40,
+      'SEDG':22.40,'ARRY':18.60,'SHLS':8.40,'NXT':42.60,'NOVA':28.40,'DQ':38.60,'JKS':28.40,'ORA':78.60,'MAXN':12.40,'POWI':62.40,
+      'CSIQ':28.40,'SPWR':8.60,'HASI':32.60,'AY':22.40,'CWEN':28.60,'BEP':28.40,'TPIC':4.80,
+      'TENB':48.60,'S':22.40,'CYBR':282.40,'QLYS':162.40,'RDWR':22.40,'CHKP':168.40,'AKAM':118.60,'VRNS':48.60,'SAIL':28.40,'EVTC':38.60,
+      'ABB':42.60,'FANUY':18.40,'KION':42.60,'NNDM':2.40,'ZURN':32.40,'AXT':4.80,'VNET':8.60,'ACMR':18.40,'ONTO':132.40,'MKSI':128.60,
+      'NOVT':168.40,'ICAD':2.80,'SMTC':28.60,
+      'VEEV':218.60,'DOCN':38.60,'ESTC':98.60,'SUMO':8.40,
+      'ADYEN':1428.40,
+      'EXAS':72.40,'RXRX':8.60,'PACB':2.40,'NTLA':18.60,'IOVA':8.40,'CRSP':52.40,
+      'NVTA':2.80,'VCYT':32.40,'FATE':4.60,'BEAM':28.40,'EDIT':8.60,'SRPT':128.60,'TWST':42.60,'ARQT':22.40,
+      'RARE':42.60,'IONS':48.60,'ACAD':22.40,'NBIX':142.40,'RCKT':28.40,'KRYS':32.40,'PRTA':38.60,
+      'TRMB':62.40,'AVAV':188.60,'DDD':8.60,'AGCO':128.40,'KRTO':2.40,
+      'RKLB':8.60,'JOBY':6.40,'ACHR':8.20,'ASTR':2.40,'SPCE':2.60,'GNSS':12.40,'RBC':282.40,
+      'CINF':128.60,'SWK':92.40,'PBCT':18.60,'GPC':148.60,
+      'APTV':82.40,'LEA':132.40,'MBLY':22.40,'LAZR':4.60,'OUST':8.40,'LIDR':2.40,'INVZ':2.80,'AEVA':2.60,'VLDR':1.80,
+      'CDNA':12.40,'ITRI':118.60,'UNP':242.60
+    };
 
-  // ── DOM REFS ──
-  var apiModal = document.getElementById('apiModal');
-  var dashboard = document.getElementById('dashboard');
-  var connectBtn = document.getElementById('connectBtn');
-  var apiKeyInput = document.getElementById('apiKeyInput');
-  var apiError = document.getElementById('apiError');
-  var settingsBtn = document.getElementById('settingsBtn');
-  var searchInput = document.getElementById('searchInput');
-  var searchDropdown = document.getElementById('searchDropdown');
-  var flowFilter = document.getElementById('flowFilter');
-  var refreshToggleBtn = document.getElementById('refreshToggle');
-  var refreshCountdown = document.getElementById('refreshCountdown');
+    // Previous close deltas for sample stocks
+    var STOCK_PC_DELTAS = {};
+    Object.keys(SAMPLE_STOCK_QUOTES).forEach(function(sym) {
+      STOCK_PC_DELTAS[sym] = SAMPLE_STOCK_QUOTES[sym] * (1 + (Math.random() - 0.5) * 0.04);
+    });
 
-  // ── API KEY FLOW ──
-  try {
-    API_KEY = localStorage.getItem('finnhub_api_key') || '';
-  } catch(e) { API_KEY = ''; }
+    // ── COMPANY NAMES ──
+    var COMPANY_NAMES = {
+      'NVDA':'NVIDIA Corp','MSFT':'Microsoft Corp','AAPL':'Apple Inc','GOOGL':'Alphabet Inc','META':'Meta Platforms','AMD':'Advanced Micro Devices','AVGO':'Broadcom Inc','CRM':'Salesforce Inc','ADBE':'Adobe Inc','NOW':'ServiceNow Inc',
+      'SNOW':'Snowflake Inc','PLTR':'Palantir Technologies','NET':'Cloudflare Inc','PANW':'Palo Alto Networks','CRWD':'CrowdStrike Holdings','DDOG':'Datadog Inc','UBER':'Uber Technologies','ORCL':'Oracle Corp',
+      'LLY':'Eli Lilly','ISRG':'Intuitive Surgical','TMO':'Thermo Fisher Scientific','REGN':'Regeneron Pharma','VRTX':'Vertex Pharmaceuticals','DXCM':'DexCom Inc','MRNA':'Moderna Inc','ABBV':'AbbVie Inc',
+      'AMZN':'Amazon.com Inc','TSLA':'Tesla Inc','BKNG':'Booking Holdings','CMG':'Chipotle Mexican Grill','LULU':'Lululemon Athletica','MELI':'MercadoLibre Inc','ABNB':'Airbnb Inc','DECK':'Deckers Outdoor',
+      'V':'Visa Inc','MA':'Mastercard Inc','SQ':'Block Inc','PYPL':'PayPal Holdings','COIN':'Coinbase Global','NU':'Nu Holdings',
+      'WDAY':'Workday Inc','HUBS':'HubSpot Inc','APP':'AppLovin Corp','DUOL':'Duolingo Inc','GTLB':'GitLab Inc','MDB':'MongoDB Inc',
+      'NFLX':'Netflix Inc','SPOT':'Spotify Technology','TTD':'The Trade Desk','RBLX':'Roblox Corp','PINS':'Pinterest Inc',
+      'ENPH':'Enphase Energy','FSLR':'First Solar Inc','NEE':'NextEra Energy','CEG':'Constellation Energy',
+      'AXON':'Axon Enterprise','CPRT':'Copart Inc','ODFL':'Old Dominion Freight','CSGP':'CoStar Group','GEHC':'GE HealthCare',
+      'JPM':'JPMorgan Chase','HD':'Home Depot','COST':'Costco','PG':'Procter & Gamble','JNJ':'Johnson & Johnson','UNH':'UnitedHealth Group',
+      'PEP':'PepsiCo Inc','QCOM':'Qualcomm Inc','TXN':'Texas Instruments','INTC':'Intel Corp','INTU':'Intuit Inc',
+      'AMAT':'Applied Materials','KLAC':'KLA Corp','LRCX':'Lam Research','MCHP':'Microchip Tech','ON':'ON Semiconductor',
+      'MPWR':'Monolithic Power','MRVL':'Marvell Technology','SWKS':'Skyworks Solutions','NXPI':'NXP Semiconductors','ADI':'Analog Devices',
+      'SNPS':'Synopsys Inc','CDNS':'Cadence Design','ANSS':'ANSYS Inc','TEAM':'Atlassian Corp',
+      'ROKU':'Roku Inc','HOOD':'Robinhood Markets','SHOP':'Shopify Inc','DKNG':'DraftKings Inc','TWLO':'Twilio Inc','PATH':'UiPath Inc',
+      'SOFI':'SoFi Technologies','AFRM':'Affirm Holdings','UPST':'Upstart Holdings',
+      'XOM':'Exxon Mobil','CVX':'Chevron Corp','WMT':'Walmart Inc','KO':'Coca-Cola Co',
+      'MCD':'McDonald\'s Corp','NKE':'Nike Inc','SBUX':'Starbucks Corp','LOW':'Lowe\'s Companies','TJX':'TJX Companies',
+      'ORLY':'O\'Reilly Automotive','GM':'General Motors','F':'Ford Motor Co','EBAY':'eBay Inc',
+      'MRK':'Merck & Co','PFE':'Pfizer Inc','ABT':'Abbott Laboratories','AMGN':'Amgen Inc','GILD':'Gilead Sciences',
+      'MDT':'Medtronic PLC','CVS':'CVS Health Corp','CI':'Cigna Group','BIIB':'Biogen Inc','ILMN':'Illumina Inc',
+      'ALNY':'Alnylam Pharma','BMRN':'BioMarin Pharma','EXAS':'Exact Sciences',
+      'CMCSA':'Comcast Corp','T':'AT&T Inc','VZ':'Verizon Comm.','DIS':'Walt Disney Co',
+      'TTWO':'Take-Two Interactive','EA':'Electronic Arts','SNAP':'Snap Inc','MTCH':'Match Group','WBD':'Warner Bros Discovery',
+      'FTNT':'Fortinet Inc','ZS':'Zscaler Inc','OKTA':'Okta Inc','TENB':'Tenable Holdings',
+      'S':'SentinelOne Inc','CYBR':'CyberArk Software','QLYS':'Qualys Inc','CHKP':'Check Point Software','AKAM':'Akamai Technologies','VRNS':'Varonis Systems',
+      'PLUG':'Plug Power Inc','SEDG':'SolarEdge Tech','RUN':'Sunrun Inc','ARRY':'Array Technologies',
+      'ZM':'Zoom Video Comm.','BOX':'Box Inc','VEEV':'Veeva Systems','DOCN':'DigitalOcean',
+      'FISV':'Fiserv Inc','FIS':'Fidelity Nat\'l Info','GPN':'Global Payments','ICE':'Intercontinental Exchange',
+      'LMT':'Lockheed Martin','HON':'Honeywell Intl','BA':'Boeing Co','NOC':'Northrop Grumman',
+      'ADP':'Automatic Data Proc.','IBM':'IBM Corp','BRK-B':'Berkshire Hathaway B',
+      'IRBT':'iRobot Corp','TER':'Teradyne Inc','BRKS':'Brooks Automation',
+      'BEP':'Brookfield Renewable','CWEN':'Clearway Energy',
+      'ESTC':'Elastic NV','SUMO':'Sumo Logic',
+      'BMY':'Bristol-Myers Squibb','NUE':'Nucor Corp','SHW':'Sherwin-Williams','SPGI':'S&P Global',
+      'RDWR':'Radware Ltd','SAIL':'SailPoint Tech','EVTC':'EVERTEC Inc',
+      'KTOS':'Kratos Defense','RKLB':'Rocket Lab USA','JOBY':'Joby Aviation','ACHR':'Archer Aviation',
+      'TRMB':'Trimble Inc','AVAV':'AeroVironment','AGCO':'AGCO Corp','DDD':'3D Systems',
+      'RXRX':'Recursion Pharma','PACB':'PacBio','NTLA':'Intellia Therapeutics','IOVA':'Iovance Biotherapeutics','CRSP':'CRISPR Therapeutics',
+      'NVTA':'Invitae Corp','VCYT':'Veracyte Inc','BEAM':'Beam Therapeutics','EDIT':'Editas Medicine','SRPT':'Sarepta Therapeutics',
+      'TWST':'Twist Bioscience','ARQT':'Arcus Biosciences','NBIX':'Neurocrine Biosciences','RARE':'Ultragenyx Pharma',
+      'IONS':'Ionis Pharmaceuticals','ACAD':'ACADIA Pharmaceuticals','RCKT':'Rocket Pharma','KRYS':'Krystal Biotech','PRTA':'Prothena Corp',
+      'FATE':'Fate Therapeutics','CDNA':'CareDx Inc',
+      'ABB':'ABB Ltd','FANUY':'Fanuc Corp','KION':'KION Group','NNDM':'Nano Dimension','ZURN':'Zurn Elkay','AXT':'AXT Inc','VNET':'VNET Group','ACMR':'ACM Research','ONTO':'Onto Innovation','MKSI':'MKS Instruments',
+      'NOVT':'Novanta Inc','ICAD':'iCAD Inc','SMTC':'Semtech Corp',
+      'NTAP':'NetApp Inc','GDOT':'Green Dot Corp',
+      'ADYEN':'Adyen NV',
+      'SPCE':'Virgin Galactic','ASTR':'Astra Space','GNSS':'Genasys Inc','RBC':'RBC Bearings',
+      'CL':'Colgate-Palmolive','MMM':'3M Company','EMR':'Emerson Electric','CINF':'Cincinnati Financial','SWK':'Stanley Black Decker',
+      'PBCT':'People\'s United Financial','GPC':'Genuine Parts Co','BDX':'Becton Dickinson',
+      'APTV':'Aptiv PLC','LEA':'Lear Corp','MBLY':'Mobileye Global','LAZR':'Luminar Technologies','OUST':'Ouster Inc',
+      'LIDR':'AEye Inc','INVZ':'Innoviz Technologies','AEVA':'Aeva Technologies','VLDR':'Velodyne Lidar',
+      'ITRI':'Itron Inc','UNP':'Union Pacific',
+      'CSIQ':'Canadian Solar','SPWR':'SunPower Corp','SHLS':'Shoals Technologies','NXT':'Nextracker Inc','NOVA':'Sunnova Energy',
+      'DQ':'Daqo New Energy','JKS':'JinkoSolar','ORA':'Ormat Technologies','MAXN':'Maxeon Solar','POWI':'Power Integrations',
+      'HASI':'Hannon Armstrong','AY':'Atlantica Sustainable','CWEN':'Clearway Energy','BEP':'Brookfield Renewable','TPIC':'TPI Composites',
+      'KRTO':'Kirotech','RNECY':'ReneSola','VWSYF':'Vestas Wind Systems','SAIL':'SailPoint Technologies'
+    };
 
-  if (API_KEY) {
-    showDashboard();
-  }
+    // ── STOCK DETAILS ──
+    var STOCK_DETAILS = {
+      'NVDA': { w52High:152.89,w52Low:76.50,beta:1.68,mktCap:3250000000000,exchange:'NASDAQ',country:'US',weburl:'nvidia.com' },
+      'MSFT': { w52High:430.82,w52Low:332.80,beta:0.89,mktCap:3060000000000,exchange:'NASDAQ',country:'US',weburl:'microsoft.com' },
+      'AAPL': { w52High:199.62,w52Low:143.90,beta:1.24,mktCap:2780000000000,exchange:'NASDAQ',country:'US',weburl:'apple.com' },
+      'GOOGL':{ w52High:182.30,w52Low:130.67,beta:1.05,mktCap:2080000000000,exchange:'NASDAQ',country:'US',weburl:'abc.xyz' },
+      'META': { w52High:590.51,w52Low:390.42,beta:1.22,mktCap:1440000000000,exchange:'NASDAQ',country:'US',weburl:'meta.com' },
+      'AMZN': { w52High:201.20,w52Low:151.61,beta:1.14,mktCap:1990000000000,exchange:'NASDAQ',country:'US',weburl:'amazon.com' },
+      'TSLA': { w52High:299.29,w52Low:182.10,beta:2.05,mktCap:790000000000,exchange:'NASDAQ',country:'US',weburl:'tesla.com' },
+      'AVGO': { w52High:185.20,w52Low:120.80,beta:1.32,mktCap:780000000000,exchange:'NASDAQ',country:'US',weburl:'broadcom.com' },
+      'V':    { w52High:295.80,w52Low:248.60,beta:0.94,mktCap:555000000000,exchange:'NYSE',country:'US',weburl:'visa.com' },
+      'MA':   { w52High:490.20,w52Low:398.60,beta:1.10,mktCap:435000000000,exchange:'NYSE',country:'US',weburl:'mastercard.com' },
+      'LLY':  { w52High:810.20,w52Low:548.40,beta:0.78,mktCap:720000000000,exchange:'NYSE',country:'US',weburl:'lilly.com' },
+      'NFLX': { w52High:725.80,w52Low:542.10,beta:1.35,mktCap:305000000000,exchange:'NASDAQ',country:'US',weburl:'netflix.com' },
+      'CRM':  { w52High:298.80,w52Low:215.40,beta:1.18,mktCap:260000000000,exchange:'NYSE',country:'US',weburl:'salesforce.com' },
+      'AMD':  { w52High:187.40,w52Low:120.50,beta:1.58,mktCap:262000000000,exchange:'NASDAQ',country:'US',weburl:'amd.com' },
+      'ADBE': { w52High:570.80,w52Low:432.60,beta:1.25,mktCap:240000000000,exchange:'NASDAQ',country:'US',weburl:'adobe.com' },
+      'CRWD': { w52High:365.20,w52Low:218.40,beta:1.35,mktCap:75000000000,exchange:'NASDAQ',country:'US',weburl:'crowdstrike.com' },
+      'PANW': { w52High:340.80,w52Low:235.60,beta:1.18,mktCap:92000000000,exchange:'NASDAQ',country:'US',weburl:'paloaltonetworks.com' },
+      'COIN': { w52High:225.60,w52Low:98.40,beta:2.85,mktCap:42000000000,exchange:'NASDAQ',country:'US',weburl:'coinbase.com' },
+      'SQ':   { w52High:88.40,w52Low:48.20,beta:2.18,mktCap:42000000000,exchange:'NYSE',country:'US',weburl:'block.xyz' },
+      'ISRG': { w52High:420.60,w52Low:298.80,beta:1.02,mktCap:135000000000,exchange:'NASDAQ',country:'US',weburl:'intuitive.com' },
+      'NOW':  { w52High:820.40,w52Low:620.80,beta:1.15,mktCap:158000000000,exchange:'NYSE',country:'US',weburl:'servicenow.com' },
+      'DDOG': { w52High:138.60,w52Low:82.40,beta:1.42,mktCap:38000000000,exchange:'NASDAQ',country:'US',weburl:'datadoghq.com' },
+      'SNOW': { w52High:192.40,w52Low:120.80,beta:1.45,mktCap:48000000000,exchange:'NYSE',country:'US',weburl:'snowflake.com' },
+      'PLTR': { w52High:28.60,w52Low:14.80,beta:1.62,mktCap:52000000000,exchange:'NYSE',country:'US',weburl:'palantir.com' },
+      'NET':  { w52High:98.40,w52Low:55.80,beta:1.48,mktCap:28000000000,exchange:'NYSE',country:'US',weburl:'cloudflare.com' },
+      'SPOT': { w52High:218.40,w52Low:128.60,beta:1.55,mktCap:35000000000,exchange:'NYSE',country:'US',weburl:'spotify.com' },
+      'MELI': { w52High:1820.40,w52Low:1180.60,beta:1.52,mktCap:82000000000,exchange:'NASDAQ',country:'US',weburl:'mercadolibre.com' },
+      'BKNG': { w52High:3680.40,w52Low:2850.60,beta:1.28,mktCap:128000000000,exchange:'NASDAQ',country:'US',weburl:'bookingholdings.com' },
+      'JPM':  { w52High:212.40,w52Low:158.60,beta:1.12,mktCap:560000000000,exchange:'NYSE',country:'US',weburl:'jpmorganchase.com' },
+      'HD':   { w52High:405.60,w52Low:298.40,beta:1.08,mktCap:362000000000,exchange:'NYSE',country:'US',weburl:'homedepot.com' },
+      'UNH':  { w52High:580.40,w52Low:428.60,beta:0.72,mktCap:512000000000,exchange:'NYSE',country:'US',weburl:'unitedhealthgroup.com' },
+      'COST': { w52High:648.20,w52Low:498.60,beta:0.68,mktCap:272000000000,exchange:'NASDAQ',country:'US',weburl:'costco.com' },
+      'ENPH': { w52High:175.80,w52Low:82.40,beta:1.82,mktCap:17000000000,exchange:'NASDAQ',country:'US',weburl:'enphase.com' },
+      'FSLR': { w52High:232.40,w52Low:142.80,beta:1.48,mktCap:20000000000,exchange:'NASDAQ',country:'US',weburl:'firstsolar.com' },
+      'MDB':  { w52High:418.60,w52Low:248.40,beta:1.52,mktCap:26000000000,exchange:'NASDAQ',country:'US',weburl:'mongodb.com' },
+      'HUBS': { w52High:648.20,w52Low:408.60,beta:1.62,mktCap:30000000000,exchange:'NYSE',country:'US',weburl:'hubspot.com' },
+      'WDAY': { w52High:292.40,w52Low:218.60,beta:1.28,mktCap:68000000000,exchange:'NASDAQ',country:'US',weburl:'workday.com' }
+    };
 
-  connectBtn.addEventListener('click', function() {
-    var key = apiKeyInput.value.trim();
-    if (!key) {
-      apiError.textContent = 'Please enter your API key.';
-      apiError.classList.remove('hidden');
-      return;
+    // ── SEARCH DB ──
+    var SEARCH_DB = {};
+    Object.keys(COMPANY_NAMES).forEach(function(sym) {
+      SEARCH_DB[sym] = { symbol: sym, description: COMPANY_NAMES[sym], type: 'Common Stock' };
+    });
+    ETF_TICKERS.forEach(function(sym) {
+      SEARCH_DB[sym] = { symbol: sym, description: ETF_DATA[sym].name, type: 'ETF' };
+    });
+
+    // ── DOM REFS ──
+    var apiModal = document.getElementById('apiModal-c3d4');
+    var dashboard = document.getElementById('dashboard-s9t0');
+    var connectBtn = document.getElementById('connectBtn-m3n4');
+    var apiKeyInput = document.getElementById('apiKeyInput-k1l2');
+    var apiError = document.getElementById('apiError-q7r8');
+    var settingsBtn = document.getElementById('settingsBtn-i5j6');
+    var searchInput = document.getElementById('searchInput-a7b8');
+    var searchDropdown = document.getElementById('searchDropdown-c9d0');
+    var refreshToggleBtn = document.getElementById('refreshToggle-e1f2');
+    var refreshCountdownEl = document.getElementById('refreshCountdown-g3h4');
+
+    // ── API KEY ──
+    try { API_KEY = localStorage.getItem('finnhub_api_key') || ''; } catch(e) { API_KEY = ''; }
+    if (API_KEY) showDashboard();
+
+    connectBtn.addEventListener('click', function() {
+      var key = apiKeyInput.value.trim();
+      if (!key) { apiError.textContent = 'Please enter your API key.'; apiError.classList.remove('hidden'); return; }
+      API_KEY = key;
+      try { localStorage.setItem('finnhub_api_key', key); } catch(e) {}
+      apiError.classList.add('hidden');
+      showDashboard();
+    });
+
+    apiKeyInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') connectBtn.click(); });
+
+    settingsBtn.addEventListener('click', function() {
+      try { localStorage.removeItem('finnhub_api_key'); } catch(e) {}
+      API_KEY = '';
+      dashboard.classList.add('hidden'); dashboard.style.display = '';
+      apiModal.classList.remove('hidden');
+      apiKeyInput.value = '';
+    });
+
+    function showDashboard() {
+      apiModal.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      dashboard.style.display = 'flex';
+      renderCatFilters();
+      loadETFFlow();
     }
-    API_KEY = key;
-    try { localStorage.setItem('finnhub_api_key', key); } catch(e) {}
-    apiError.classList.add('hidden');
-    showDashboard();
-  });
 
-  apiKeyInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') connectBtn.click();
-  });
+    // ── TAB SWITCHING ──
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+      var target = document.getElementById('tab-' + tab);
+      if (target) target.classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.toggle('active', btn.dataset.tab === tab); });
+      document.querySelectorAll('[data-mob]').forEach(function(btn) { btn.style.color = btn.dataset.mob === tab ? '#00d4aa' : '#8b949e'; });
+    }
 
-  settingsBtn.addEventListener('click', function() {
-    try { localStorage.removeItem('finnhub_api_key'); } catch(e) {}
-    API_KEY = '';
-    dashboard.classList.add('hidden');
-    dashboard.style.display = '';
-    apiModal.classList.remove('hidden');
-    apiKeyInput.value = '';
-  });
-
-  function showDashboard() {
-    apiModal.classList.add('hidden');
-    dashboard.classList.remove('hidden');
-    dashboard.style.display = 'flex';
-    loadMarketFlow();
-    loadSectorFlow();
-  }
-
-  // ── TAB SWITCHING ──
-  function switchTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
-    var target = document.getElementById('tab-' + tab);
-    if (target) target.classList.add('active');
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
-      btn.classList.toggle('active', btn.dataset.tab === tab);
+      btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
     });
     document.querySelectorAll('[data-mob]').forEach(function(btn) {
-      btn.style.color = btn.dataset.mob === tab ? '#00d4aa' : '#8b949e';
+      btn.addEventListener('click', function() { switchTab(btn.dataset.mob); });
     });
-  }
 
-  document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
-  });
-  document.querySelectorAll('[data-mob]').forEach(function(btn) {
-    btn.addEventListener('click', function() { switchTab(btn.dataset.mob); });
-  });
+    // ── FORMATTERS ──
+    function fmtPrice(n) { return n == null ? '—' : '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function fmtChange(n) { if (n == null) return '—'; return (n > 0 ? '+' : '') + n.toFixed(2) + '%'; }
+    function fmtMktCap(n) {
+      if (!n) return '—';
+      if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+      if (n >= 1e9)  return '$' + (n/1e9).toFixed(2) + 'B';
+      if (n >= 1e6)  return '$' + (n/1e6).toFixed(2) + 'M';
+      return '$' + n.toLocaleString();
+    }
 
-  // ── FORMAT HELPERS ──
-  function fmtPrice(n) { return n == null ? '—' : '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}); }
-  function fmtChange(n) { if (n == null) return '—'; return (n > 0 ? '+' : '') + n.toFixed(2) + '%'; }
-  function fmtMktCap(n) {
-    if (!n) return '—';
-    if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
-    if (n >= 1e9)  return '$' + (n/1e9).toFixed(2) + 'B';
-    if (n >= 1e6)  return '$' + (n/1e6).toFixed(2) + 'M';
-    return '$' + n.toLocaleString();
-  }
-  function flowSignalHTML(chg) {
-    if (chg > 1.5) return '<span class="pill-green">🟢 INFLOW</span>';
-    if (chg < -1.5) return '<span class="pill-red">🔴 OUTFLOW</span>';
-    return '<span class="pill-gray">⚪ NEUTRAL</span>';
-  }
-  function flowKey(chg) {
-    if (chg > 1.5) return 'inflow';
-    if (chg < -1.5) return 'outflow';
-    return 'neutral';
-  }
+    function setProgress(pct) {
+      var bar = document.getElementById('progressBar-a1b2');
+      bar.classList.remove('hidden');
+      bar.style.width = pct + '%';
+      if (pct >= 100) setTimeout(function() { bar.classList.add('hidden'); }, 600);
+    }
 
-  // ── PROGRESS BAR ──
-  function setProgress(pct) {
-    var bar = document.getElementById('progressBar');
-    bar.classList.remove('hidden');
-    bar.style.width = pct + '%';
-    if (pct >= 100) setTimeout(function() { bar.classList.add('hidden'); }, 600);
-  }
+    // ── CATEGORY FILTER RENDERING ──
+    function renderCatFilters() {
+      var container = document.getElementById('catFilters-s5t6');
+      container.innerHTML = '';
+      CATEGORIES.forEach(function(cat) {
+        var btn = document.createElement('button');
+        btn.className = 'cat-filter-btn' + (currentCatFilter === cat ? ' active' : '');
+        btn.textContent = cat;
+        if (cat !== 'All' && CAT_COLORS[cat]) {
+          btn.style.borderColor = currentCatFilter === cat ? CAT_COLORS[cat] : '';
+          if (currentCatFilter === cat) {
+            btn.style.background = CAT_COLORS[cat] + '22';
+            btn.style.color = CAT_COLORS[cat];
+            btn.style.borderColor = CAT_COLORS[cat];
+          }
+        }
+        btn.addEventListener('click', function() {
+          currentCatFilter = cat;
+          renderCatFilters();
+          renderETFGrid();
+        });
+        container.appendChild(btn);
+      });
+    }
 
-  // ── MARKET FLOW (loads /quote per stock — 1 per second for Finnhub free tier) ──
-  function loadMarketFlow() {
-    setProgress(5);
-    var body = document.getElementById('marketTableBody');
-    body.innerHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:#8b949e;">📡 Loading 60 growth leaders — 1 per second (60 sec total)...</td></tr>';
+    // ── ETF FLOW LOADING ──
+    function loadETFFlow() {
+      if (etfLoading) return;
+      etfLoading = true;
+      etfQuotes = {};
+      etfLoadedCount = 0;
+      setProgress(5);
+      renderETFGridSkeletons();
 
-    marketData = [];
-    var loaded = 0;
+      function loadOne(i) {
+        if (i >= ETF_TICKERS.length) {
+          etfLoading = false;
+          setProgress(100);
+          document.getElementById('etfProgress-q3r4').textContent = '40 / 40 loaded';
+          renderHeatmap();
+          return;
+        }
+        var sym = ETF_TICKERS[i];
+        var q = SAMPLE_ETF_QUOTES[sym];
+        if (q) {
+          var chg = q.pc > 0 ? ((q.c - q.pc) / q.pc) * 100 : 0;
+          etfQuotes[sym] = { price: q.c, change: chg, pc: q.pc };
+        } else {
+          etfQuotes[sym] = { price: null, change: 0, pc: null };
+        }
+        etfLoadedCount++;
+        setProgress(5 + Math.round((etfLoadedCount / ETF_TICKERS.length) * 90));
+        document.getElementById('etfProgress-q3r4').textContent = 'Loading ETFs... ' + etfLoadedCount + ' / 40';
+        renderETFGrid();
+        setTimeout(function() { loadOne(i + 1); }, 200);
+      }
+      loadOne(0);
+    }
 
-    function loadOne(i) {
-      if (i >= STOCKS.length) {
-        setProgress(100);
-        renderFlowSummary();
+    function renderETFGridSkeletons() {
+      var grid = document.getElementById('etfGrid-u7v8');
+      var html = '';
+      for (var i = 0; i < 40; i++) html += '<div class="skeleton" style="height:150px;"></div>';
+      grid.innerHTML = html;
+    }
+
+    function renderETFGrid() {
+      var grid = document.getElementById('etfGrid-u7v8');
+      var tickers = ETF_TICKERS;
+      if (currentCatFilter !== 'All') {
+        tickers = tickers.filter(function(sym) { return ETF_DATA[sym].cat === currentCatFilter; });
+      }
+      var html = '';
+      tickers.forEach(function(sym) {
+        var etf = ETF_DATA[sym];
+        var q = etfQuotes[sym];
+        if (!q) {
+          html += '<div class="skeleton" style="height:150px;"></div>';
+          return;
+        }
+        var chg = q.change;
+        var chgClass = chg >= 0 ? 'text-pos' : 'text-neg';
+        var arrow = chg >= 0 ? '▲' : '▼';
+        var catColor = CAT_COLORS[etf.cat] || '#8b949e';
+        // Mini color bar gradient
+        var barPct = Math.min(100, Math.max(0, (chg + 2) / 4 * 100));
+        var barColor;
+        if (chg >= 2) barColor = '#00ff7f';
+        else if (chg <= -2) barColor = '#ff4d4d';
+        else if (chg >= 0) barColor = 'linear-gradient(to right, #ffd700, #00ff7f)';
+        else barColor = 'linear-gradient(to right, #ff4d4d, #ffd700)';
+
+        html += '<div class="etf-card bg-bg-800 border border-stroke-500 rounded-xl overflow-hidden" data-etf="' + sym + '">' +
+          '<div class="p-4">' +
+            '<div class="flex items-center justify-between mb-1">' +
+              '<span class="mono text-lg font-extrabold">' + sym + '</span>' +
+              '<span style="background:' + catColor + '22;color:' + catColor + ';border:1px solid ' + catColor + '44;" class="rounded-full px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">' + etf.cat + '</span>' +
+            '</div>' +
+            '<div class="text-xs text-fg-400 mb-3 truncate">' + etf.name + '</div>' +
+            '<div class="mono text-xl font-bold mb-1">' + fmtPrice(q.price) + '</div>' +
+            '<div class="mono text-sm font-semibold ' + chgClass + '">' + arrow + ' ' + fmtChange(chg) + '</div>' +
+          '</div>' +
+          '<div style="height:4px;background:' + (typeof barColor === 'string' && barColor.indexOf('linear') === 0 ? barColor : barColor) + ';"></div>' +
+        '</div>';
+      });
+      // Add remaining skeletons
+      var remaining = tickers.length - Object.keys(etfQuotes).filter(function(k) { return tickers.indexOf(k) !== -1; }).length;
+      if (remaining > 0 && etfLoading) {
+        for (var r = 0; r < remaining; r++) html += '<div class="skeleton" style="height:150px;"></div>';
+      }
+      grid.innerHTML = html;
+
+      // Attach click handlers
+      grid.querySelectorAll('.etf-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          var sym = card.dataset.etf;
+          openHoldings(sym);
+        });
+      });
+    }
+
+    // ── HOLDINGS TAB ──
+    function openHoldings(sym) {
+      currentETF = sym;
+      switchTab('holdings');
+      document.getElementById('holdingsPlaceholder-w9x0').classList.add('hidden');
+      var content = document.getElementById('holdingsContent-a3b4');
+      content.classList.remove('hidden');
+
+      var etf = ETF_DATA[sym];
+      var eq = etfQuotes[sym] || { price: null, change: 0 };
+      var chgClass = eq.change >= 0 ? 'text-pos' : 'text-neg';
+      var catColor = CAT_COLORS[etf.cat] || '#8b949e';
+
+      content.innerHTML =
+        '<div class="flex items-center gap-2 mb-4 flex-wrap">' +
+          '<button id="backToETF-btn" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-lg px-3 py-2 cursor-pointer text-sm font-semibold flex items-center gap-1"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to ETF Flow</button>' +
+          '<div class="text-sm text-fg-400">📊 ETF Flow <span class="text-fg-600 mx-1">></span> <span class="font-bold text-fg-100">' + sym + '</span> Top Holdings</div>' +
+        '</div>' +
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4 mb-4">' +
+          '<div class="flex items-center justify-between flex-wrap gap-3">' +
+            '<div>' +
+              '<div class="flex items-center gap-3 mb-1">' +
+                '<span class="mono text-2xl font-extrabold">' + sym + '</span>' +
+                '<span style="background:' + catColor + '22;color:' + catColor + ';border:1px solid ' + catColor + '44;" class="rounded-full px-2.5 py-0.5 text-xs font-semibold">' + etf.cat + '</span>' +
+              '</div>' +
+              '<div class="text-sm text-fg-400">' + etf.name + '</div>' +
+            '</div>' +
+            '<div class="text-right">' +
+              '<div class="mono text-3xl font-extrabold">' + fmtPrice(eq.price) + '</div>' +
+              '<div class="mono text-base font-semibold ' + chgClass + '">' + (eq.change >= 0 ? '▲' : '▼') + ' ' + fmtChange(eq.change) + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="holdingsProgress-x1y2" class="text-sm text-fg-400 mb-3"></div>' +
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl overflow-x-auto">' +
+          '<table class="w-full text-sm">' +
+            '<thead><tr class="border-b border-stroke-500 text-fg-400 text-xs">' +
+              '<th class="px-4 py-3 text-left">RANK</th>' +
+              '<th class="px-4 py-3 text-left">SYMBOL</th>' +
+              '<th class="px-4 py-3 text-left desktop-only">COMPANY</th>' +
+              '<th class="px-4 py-3 text-right">PRICE</th>' +
+              '<th class="px-4 py-3 text-right">CHANGE %</th>' +
+              '<th class="px-4 py-3 text-center">ACTION</th>' +
+            '</tr></thead>' +
+            '<tbody id="holdingsTableBody-z3a4"></tbody>' +
+          '</table>' +
+        '</div>';
+
+      // Re-init icons
+      if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
+
+      document.getElementById('backToETF-btn').addEventListener('click', function() { switchTab('etf'); });
+
+      // Load holdings quotes
+      loadHoldingsQuotes(etf.holdings);
+    }
+
+    function loadHoldingsQuotes(holdings) {
+      holdingsQuotes = {};
+      holdingsLoading = true;
+      var loaded = 0;
+
+      function loadOne(i) {
+        if (i >= holdings.length) {
+          holdingsLoading = false;
+          document.getElementById('holdingsProgress-x1y2').textContent = holdings.length + ' / ' + holdings.length + ' loaded';
+          return;
+        }
+        var sym = holdings[i];
+        var price = SAMPLE_STOCK_QUOTES[sym] || (50 + Math.random() * 200);
+        var pc = STOCK_PC_DELTAS[sym] || price * (1 - (Math.random() - 0.5) * 0.03);
+        var chg = pc > 0 ? ((price - pc) / pc) * 100 : 0;
+        holdingsQuotes[sym] = { price: typeof price === 'number' ? price : parseFloat(price), change: chg, pc: pc };
+        loaded++;
+        document.getElementById('holdingsProgress-x1y2').textContent = 'Loading holdings... ' + loaded + ' / ' + holdings.length;
+        renderHoldingsTable(holdings);
+        setTimeout(function() { loadOne(i + 1); }, 200);
+      }
+      loadOne(0);
+    }
+
+    function renderHoldingsTable(holdings) {
+      var tbody = document.getElementById('holdingsTableBody-z3a4');
+      var html = '';
+      holdings.forEach(function(sym, idx) {
+        var q = holdingsQuotes[sym];
+        if (!q) {
+          html += '<tr class="border-b border-bg-700"><td colspan="6" class="px-4 py-3 text-fg-600 text-center"><div class="skeleton" style="height:20px;width:100%;"></div></td></tr>';
+          return;
+        }
+        var chgClass = q.change >= 0 ? 'text-pos' : 'text-neg';
+        var bgTint = q.change >= 0 ? 'rgba(0,255,127,0.04)' : 'rgba(255,77,77,0.04)';
+        var companyName = COMPANY_NAMES[sym] || sym;
+        html += '<tr class="stock-row border-b border-bg-700" data-symbol="' + sym + '" style="background:' + bgTint + ';">' +
+          '<td class="px-4 py-3 text-fg-400 font-semibold">#' + (idx + 1) + '</td>' +
+          '<td class="px-4 py-3 font-bold text-base">' + sym + '</td>' +
+          '<td class="px-4 py-3 text-fg-400 text-xs desktop-only">' + companyName + '</td>' +
+          '<td class="px-4 py-3 text-right mono font-semibold">' + fmtPrice(q.price) + '</td>' +
+          '<td class="px-4 py-3 text-right mono font-semibold ' + chgClass + '">' + (q.change >= 0 ? '▲' : '▼') + ' ' + fmtChange(q.change) + '</td>' +
+          '<td class="px-4 py-3 text-center"><button class="detail-btn text-accent-500 text-xs font-semibold hover:underline cursor-pointer bg-transparent border-none" data-sym="' + sym + '">View Detail →</button></td>' +
+        '</tr>';
+      });
+      tbody.innerHTML = html;
+
+      tbody.querySelectorAll('.detail-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          loadStockDetail(btn.dataset.sym);
+        });
+      });
+      tbody.querySelectorAll('.stock-row').forEach(function(row) {
+        row.addEventListener('click', function() { loadStockDetail(row.dataset.symbol); });
+      });
+    }
+
+    // ── HEATMAP TAB ──
+    function renderHeatmap() {
+      var catStats = {};
+      CATEGORIES.forEach(function(cat) {
+        if (cat === 'All') return;
+        catStats[cat] = { total: 0, sumChange: 0, count: 0 };
+      });
+      ETF_TICKERS.forEach(function(sym) {
+        var etf = ETF_DATA[sym];
+        var q = etfQuotes[sym];
+        if (!q || !catStats[etf.cat]) return;
+        catStats[etf.cat].total++;
+        catStats[etf.cat].sumChange += q.change;
+        catStats[etf.cat].count++;
+      });
+
+      var grid = document.getElementById('heatmapGrid-e7f8');
+      var html = '';
+      var chartLabels = [];
+      var chartData = [];
+      var chartColors = [];
+
+      Object.keys(catStats).sort(function(a, b) { return catStats[b].count - catStats[a].count; }).forEach(function(cat) {
+        var s = catStats[cat];
+        var avg = s.count > 0 ? s.sumChange / s.count : 0;
+        chartLabels.push(cat);
+        chartData.push(parseFloat(avg.toFixed(2)));
+
+        var opacity = Math.min(0.85, 0.2 + Math.abs(avg) * 0.25);
+        var bg, txtColor;
+        if (avg >= 0.3) { bg = 'rgba(0,255,127,' + opacity + ')'; txtColor = '#00ff7f'; }
+        else if (avg <= -0.3) { bg = 'rgba(255,77,77,' + opacity + ')'; txtColor = '#ff4d4d'; }
+        else { bg = 'rgba(139,148,158,0.2)'; txtColor = '#8b949e'; }
+        chartColors.push(avg >= 0 ? 'rgba(0,255,127,0.7)' : 'rgba(255,77,77,0.7)');
+
+        var size = s.count >= 5 ? 'col-span-2' : '';
+        html += '<div class="heatmap-tile ' + size + '" data-cat="' + cat + '" style="background:' + bg + ';min-height:100px;">' +
+          '<div class="text-base font-bold mb-1">' + cat + '</div>' +
+          '<div class="mono text-2xl font-extrabold" style="color:' + txtColor + ';">' + (avg >= 0 ? '+' : '') + avg.toFixed(2) + '%</div>' +
+          '<div class="text-xs text-fg-400 mt-1">' + s.count + ' ETF' + (s.count !== 1 ? 's' : '') + '</div>' +
+        '</div>';
+      });
+      grid.innerHTML = html;
+
+      grid.querySelectorAll('.heatmap-tile').forEach(function(tile) {
+        tile.addEventListener('click', function() {
+          currentCatFilter = tile.dataset.cat;
+          switchTab('etf');
+          renderCatFilters();
+          renderETFGrid();
+        });
+      });
+
+      // Chart
+      var ctx = document.getElementById('heatmapChart-i1j2');
+      if (!ctx) return;
+      if (heatmapChartInstance) heatmapChartInstance.destroy();
+      var sorted = chartLabels.map(function(l, i) { return { label: l, value: chartData[i] }; }).sort(function(a, b) { return a.value - b.value; });
+      heatmapChartInstance = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: sorted.map(function(s) { return s.label; }),
+          datasets: [{
+            label: 'Avg % Change',
+            data: sorted.map(function(s) { return s.value; }),
+            backgroundColor: sorted.map(function(s) { return s.value >= 0 ? 'rgba(0,255,127,0.7)' : 'rgba(255,77,77,0.7)'; }),
+            borderColor: sorted.map(function(s) { return s.value >= 0 ? '#00ff7f' : '#ff4d4d'; }),
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return fmtChange(c.raw); } } } },
+          scales: {
+            x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', callback: function(v) { return v + '%'; } } },
+            y: { grid: { display: false }, ticks: { color: '#e6edf3', font: { size: 12 } } }
+          }
+        }
+      });
+    }
+
+    // ── STOCK DETAIL ──
+    function loadStockDetail(symbol) {
+      switchTab('stock');
+      document.getElementById('stockPlaceholder-k3l4').classList.add('hidden');
+      var detail = document.getElementById('stockDetail-m5n6');
+      detail.classList.remove('hidden');
+
+      var companyName = COMPANY_NAMES[symbol] || symbol;
+      var price = SAMPLE_STOCK_QUOTES[symbol];
+      var pc = STOCK_PC_DELTAS[symbol];
+      var extra = STOCK_DETAILS[symbol];
+
+      if (price == null) {
+        var searchEntry = SEARCH_DB[symbol];
+        if (searchEntry) {
+          companyName = searchEntry.description;
+          detail.innerHTML = '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-10 text-center">' +
+            '<div class="text-5xl mb-3">📊</div>' +
+            '<h2 class="text-xl font-bold mb-2">' + companyName + '</h2>' +
+            '<span class="bg-accent-500/20 text-accent-500 border border-accent-500/40 rounded-md px-3 py-1 text-base font-bold mono">' + symbol + '</span>' +
+            '<p class="text-fg-400 mt-4 text-sm">This stock is not in the sample dataset. Connect to Finnhub API for live data.</p>' +
+          '</div>';
+        } else {
+          detail.innerHTML = '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-10 text-center text-neg">No data available for ' + symbol + '.</div>';
+        }
         return;
       }
 
-      var sym = STOCKS[i];
-      var quote = SAMPLE_QUOTES[sym];
-      if (quote && quote.c) {
-        var chg = quote.pc > 0 ? ((quote.c - quote.pc) / quote.pc) * 100 : 0;
-        marketData.push({
-          symbol: sym,
-          name: sym,
-          price: quote.c,
-          change: chg,
-          high: quote.h,
-          low: quote.l,
-          pc: quote.pc,
-          industry: getSector(sym)
-        });
-      } else {
-        marketData.push({
-          symbol: sym,
-          name: sym,
-          price: null,
-          change: 0,
-          high: null,
-          low: null,
-          pc: null,
-          industry: getSector(sym)
-        });
-      }
-      loaded++;
+      var change = pc > 0 ? ((price - pc) / pc) * 100 : 0;
+      var chgClass = change >= 0 ? 'text-pos' : 'text-neg';
+      var changeDol = pc ? (price - pc) : 0;
 
-      setProgress(5 + Math.round((loaded / STOCKS.length) * 88));
+      var w52High = extra ? extra.w52High : price * 1.15;
+      var w52Low = extra ? extra.w52Low : price * 0.75;
+      var beta = extra ? extra.beta : null;
+      var mktCap = extra ? extra.mktCap : null;
+      var exchange = extra ? extra.exchange : '';
+      var country = extra ? extra.country : '';
+      var weburl = extra ? extra.weburl : '';
 
-      // Update loading message with count
-      if (loaded < STOCKS.length) {
-        var firstRow = body.querySelector('tr:first-child td');
-        if (firstRow && marketData.length === loaded && loaded < STOCKS.length) {
-          // Keep the loading message on top row if table hasn't rendered yet
-        }
+      var rangePos = 50;
+      if (w52High && w52Low && w52High !== w52Low) {
+        rangePos = ((price - w52Low) / (w52High - w52Low)) * 100;
       }
 
-      renderMarketTable();
-
-      if (i + 1 < STOCKS.length) {
-        setTimeout(function() { loadOne(i + 1); }, 1000);
-      } else {
-        setProgress(100);
-        renderFlowSummary();
+      var flowSignalText = '', flowColor = '';
+      if (w52High && w52Low) {
+        var posInRange = (price - w52Low) / (w52High - w52Low);
+        if (posInRange >= 0.7) { flowSignalText = '🚀 Strong Uptrend — Institutional Interest Likely HIGH'; flowColor = '#00ff7f'; }
+        else if (posInRange >= 0.5) { flowSignalText = '⚠️ Mid-Range — Mixed Institutional Signals'; flowColor = '#ffd700'; }
+        else { flowSignalText = '📉 Downtrend — Possible Institutional Exit'; flowColor = '#ff4d4d'; }
       }
-    }
 
-    loadOne(0);
-  }
-
-  function renderMarketTable() {
-    var filter = flowFilter.value;
-    var rows = marketData.slice();
-
-    if (filter !== 'all') rows = rows.filter(function(r) { return flowKey(r.change) === filter; });
-
-    rows.sort(function(a, b) {
-      var av = a[sortCol], bv = b[sortCol];
-      if (typeof av === 'string') return sortDir * av.localeCompare(bv);
-      return sortDir * ((av || 0) - (bv || 0));
-    });
-
-    var body = document.getElementById('marketTableBody');
-    if (!rows.length) {
-      body.innerHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:#8b949e;">No stocks match the filter</td></tr>';
-      return;
-    }
-
-    var remaining = STOCKS.length - marketData.length;
-    var loadingRow = '';
-    if (remaining > 0) {
-      loadingRow = '<tr><td colspan="7" style="padding:12px 16px;text-align:center;color:#8b949e;font-size:13px;">📡 Loading ' + marketData.length + ' / 60 growth stocks... (' + remaining + ' remaining)</td></tr>';
-    }
-
-    body.innerHTML = rows.map(function(r) {
-      var chgClass = r.change >= 0 ? 'positive' : 'negative';
-      return '<tr class="stock-row" data-symbol="' + r.symbol + '" style="border-bottom:1px solid #21262d;">' +
-        '<td style="padding:12px 16px;"><span style="font-weight:700;font-size:15px;">' + r.symbol + '</span></td>' +
-        '<td style="padding:12px 16px;color:#8b949e;font-size:13px;" class="desktop-only">' + (r.industry || '—') + '</td>' +
-        '<td style="padding:12px 16px;text-align:right;" class="mono">' + fmtPrice(r.price) + '</td>' +
-        '<td style="padding:12px 16px;text-align:right;" class="mono ' + chgClass + '">' + fmtChange(r.change) + '</td>' +
-        '<td style="padding:12px 16px;text-align:right;font-size:12px;color:#8b949e;" class="desktop-only">' + fmtPrice(r.low) + ' – ' + fmtPrice(r.high) + '</td>' +
-        '<td style="padding:12px 16px;font-size:12px;color:#8b949e;" class="desktop-only">' + (r.industry || '—') + '</td>' +
-        '<td style="padding:12px 16px;text-align:center;">' + flowSignalHTML(r.change) + '</td>' +
-      '</tr>';
-    }).join('') + loadingRow;
-
-    body.querySelectorAll('.stock-row').forEach(function(row) {
-      row.addEventListener('click', function() {
-        loadStockDetail(row.dataset.symbol);
-      });
-    });
-  }
-
-  function renderFlowSummary() {
-    var inflow = marketData.filter(function(r) { return r.change > 1.5; }).length;
-    var outflow = marketData.filter(function(r) { return r.change < -1.5; }).length;
-    var neutral = marketData.length - inflow - outflow;
-    document.getElementById('flowSummary').innerHTML =
-      '<span class="positive">▲ ' + inflow + ' Inflow</span> &nbsp; <span class="negative">▼ ' + outflow + ' Outflow</span> &nbsp; <span style="color:#8b949e;">◉ ' + neutral + ' Neutral</span>';
-  }
-
-  flowFilter.addEventListener('change', function() { renderMarketTable(); });
-
-  // Sort handlers
-  document.getElementById('sortSymbol').addEventListener('click', function() { doSort('symbol'); });
-  document.getElementById('sortPrice').addEventListener('click', function() { doSort('price'); });
-  document.getElementById('sortChange').addEventListener('click', function() { doSort('change'); });
-
-  function doSort(col) {
-    if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = -1; }
-    renderMarketTable();
-  }
-
-  // ── SECTOR FLOW ──
-  function loadSectorFlow() {
-    sectorData = SECTORS.slice();
-    renderSectorGrid();
-    renderSectorChart();
-  }
-
-  function renderSectorGrid() {
-    var grid = document.getElementById('sectorGrid');
-    grid.innerHTML = sectorData.map(function(s) {
-      var abs = Math.abs(s.change);
-      var opacity = Math.min(0.85, 0.15 + abs * 0.2);
-      var bg;
-      if (s.change > 0.3) bg = 'rgba(0,255,127,' + opacity + ')';
-      else if (s.change < -0.3) bg = 'rgba(255,77,77,' + opacity + ')';
-      else bg = 'rgba(139,148,158,0.15)';
-      var chgClass = s.change >= 0 ? 'positive' : 'negative';
-      return '<div class="sector-card" data-etf="' + s.etf + '" style="background:' + bg + ';">' +
-        '<div style="font-size:24px;margin-bottom:6px;">' + s.emoji + '</div>' +
-        '<div style="font-weight:700;font-size:14px;">' + s.name + '</div>' +
-        '<div style="font-size:11px;color:#8b949e;margin-bottom:6px;">' + s.etf + '</div>' +
-        '<div class="mono" style="font-size:15px;font-weight:700;">' + fmtPrice(s.price) + '</div>' +
-        '<div class="mono ' + chgClass + '" style="font-size:13px;font-weight:600;">' + fmtChange(s.change) + '</div>' +
-      '</div>';
-    }).join('');
-
-    grid.querySelectorAll('.sector-card').forEach(function(card) {
-      card.addEventListener('click', function() {
-        loadStockDetail(card.dataset.etf);
-      });
-    });
-  }
-
-  function renderSectorChart() {
-    var sorted = sectorData.slice().sort(function(a,b) { return a.change - b.change; });
-    var ctx = document.getElementById('sectorChart').getContext('2d');
-    if (sectorChartInstance) sectorChartInstance.destroy();
-    sectorChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: sorted.map(function(s) { return s.name; }),
-        datasets: [{
-          label: '% Change',
-          data: sorted.map(function(s) { return parseFloat(s.change.toFixed(2)); }),
-          backgroundColor: sorted.map(function(s) { return s.change >= 0 ? 'rgba(0,255,127,0.7)' : 'rgba(255,77,77,0.7)'; }),
-          borderColor: sorted.map(function(s) { return s.change >= 0 ? '#00ff7f' : '#ff4d4d'; }),
-          borderWidth: 1,
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: function(c) { return fmtChange(c.raw); } } }
-        },
-        scales: {
-          x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', callback: function(v) { return v + '%'; } } },
-          y: { grid: { display: false }, ticks: { color: '#e6edf3', font: { size: 12 } } }
-        }
+      var betaLabel = '';
+      if (beta != null) {
+        if (beta > 1.5) betaLabel = '🔥 High Volatility';
+        else if (beta >= 0.8) betaLabel = '⚡ Moderate';
+        else betaLabel = '🛡️ Low Volatility';
       }
-    });
-  }
 
-  // ── STOCK DETAIL (loads profile data only on click) ──
-  function loadStockDetail(symbol) {
-    switchTab('stock');
-    document.getElementById('stockPlaceholder').classList.add('hidden');
-    var detail = document.getElementById('stockDetail');
-    detail.classList.remove('hidden');
+      var pctFromHigh = w52High ? (((price - w52High) / w52High) * 100).toFixed(1) : null;
+      var pctFromLow = w52Low ? (((price - w52Low) / w52Low) * 100).toFixed(1) : null;
 
-    // Find market data for this stock
-    var stock = marketData.find(function(s) { return s.symbol === symbol; });
-    // Or sector data
-    var sector = sectorData.find(function(s) { return s.etf === symbol; });
-    var extra = STOCK_DETAILS[symbol];
+      var high = price * (1 + Math.random() * 0.02);
+      var low = price * (1 - Math.random() * 0.02);
+      var open = pc || price * 0.998;
 
-    // Get company name from profile data
-    var companyName = COMPANY_NAMES[symbol] || symbol;
-
-    if (!stock && !sector) {
-      // For stocks not in our 60 list (from search), show what we can
-      var searchEntry = SEARCH_DB[symbol];
-      if (searchEntry) {
-        companyName = searchEntry.description;
-        detail.innerHTML = '<div class="card" style="padding:40px;text-align:center;">' +
-          '<div style="font-size:48px;margin-bottom:12px;">📊</div>' +
-          '<h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">' + companyName + '</h2>' +
-          '<span style="background:#00d4aa22;color:#00d4aa;border:1px solid #00d4aa44;border-radius:6px;padding:4px 14px;font-size:15px;font-weight:700;">' + symbol + '</span>' +
-          '<p style="color:#8b949e;margin-top:16px;font-size:14px;">This stock is not in the tracked 60 growth leaders. Connect to Finnhub API for live data.</p>' +
-          '<p style="color:#30363d;margin-top:8px;font-size:12px;">⚠️ Sample data mode — only the 60 tracked growth stocks have quote data</p>' +
-        '</div>';
-      } else {
-        detail.innerHTML = '<div class="card" style="padding:40px;text-align:center;color:#ff4d4d;">⚠️ No data available for ' + symbol + '. Try a stock from the Growth Leaders tab.</div>';
-      }
-      return;
-    }
-
-    var name, price, change, high, low, pc, industry;
-    if (stock) {
-      name = companyName; price = stock.price; change = stock.change;
-      high = stock.high; low = stock.low; pc = stock.pc; industry = stock.industry;
-    } else {
-      name = sector.name + ' ETF'; price = sector.price; change = sector.change;
-      high = price * 1.01; low = price * 0.99; pc = price / (1 + change/100); industry = sector.name;
-    }
-
-    var chgClass = change >= 0 ? 'positive' : 'negative';
-    var changeDol = pc ? (price - pc) : 0;
-
-    var w52High = extra ? extra.w52High : price * 1.15;
-    var w52Low = extra ? extra.w52Low : price * 0.75;
-    var beta = extra ? extra.beta : null;
-    var mktCap = extra ? extra.mktCap : null;
-    var exchange = extra ? extra.exchange : '';
-    var country = extra ? extra.country : '';
-    var weburl = extra ? extra.weburl : '';
-
-    var rangePos = 50;
-    if (w52High && w52Low && w52High !== w52Low) {
-      rangePos = ((price - w52Low) / (w52High - w52Low)) * 100;
-    }
-
-    var flowSignalText = '', flowColor = '';
-    if (w52High && w52Low) {
-      var posInRange = (price - w52Low) / (w52High - w52Low);
-      if (posInRange >= 0.7) { flowSignalText = '🚀 Strong Uptrend — Institutional Interest Likely HIGH'; flowColor = '#00ff7f'; }
-      else if (posInRange >= 0.5) { flowSignalText = '⚠️ Mid-Range — Mixed Institutional Signals'; flowColor = '#ffd700'; }
-      else { flowSignalText = '📉 Downtrend — Possible Institutional Exit'; flowColor = '#ff4d4d'; }
-    }
-
-    var betaLabel = '';
-    if (beta != null) {
-      if (beta > 1.5) betaLabel = '🔥 High Volatility';
-      else if (beta >= 0.8) betaLabel = '⚡ Moderate';
-      else betaLabel = '🛡️ Low Volatility';
-    }
-
-    var pctFromHigh = w52High ? (((price - w52High) / w52High) * 100).toFixed(1) : null;
-    var pctFromLow = w52Low ? (((price - w52Low) / w52Low) * 100).toFixed(1) : null;
-
-    var inWL = watchlist.indexOf(symbol) !== -1;
-
-    // Generate intraday points
-    var open = pc || price * 0.998;
-    var intradayPoints = generateIntradayPoints(open, high, low, price, 30);
-
-    detail.innerHTML =
-      '<div class="card" style="padding:20px;margin-bottom:14px;">' +
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">' +
-          '<div>' +
-            '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;">' +
-              '<span style="font-size:22px;font-weight:800;">' + name + '</span>' +
-              '<span style="background:#00d4aa22;color:#00d4aa;border:1px solid #00d4aa44;border-radius:6px;padding:2px 10px;font-size:13px;font-weight:700;">' + symbol + '</span>' +
-              (exchange ? '<span style="background:#21262d;color:#8b949e;border-radius:6px;padding:2px 10px;font-size:12px;">' + exchange + '</span>' : '') +
+      detail.innerHTML =
+        '<button id="backFromDetail-btn" class="bg-bg-600 border border-stroke-500 text-fg-400 rounded-lg px-3 py-2 cursor-pointer text-sm font-semibold flex items-center gap-1 mb-4"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>' +
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
+          '<div class="flex items-start justify-between gap-3 flex-wrap">' +
+            '<div>' +
+              '<div class="flex items-center gap-3 flex-wrap mb-1">' +
+                '<span class="text-2xl font-extrabold">' + companyName + '</span>' +
+                '<span class="bg-accent-500/20 text-accent-500 border border-accent-500/40 rounded-md px-2.5 py-0.5 text-sm font-bold mono">' + symbol + '</span>' +
+                (exchange ? '<span class="bg-bg-600 text-fg-400 rounded-md px-2 py-0.5 text-xs">' + exchange + '</span>' : '') +
+              '</div>' +
+              '<div class="text-fg-400 text-sm">' + (country ? '📍 ' + country : '') + (weburl ? ' · <a href="https://' + weburl + '" target="_blank" class="text-accent-500 hover:underline">' + weburl + '</a>' : '') + '</div>' +
             '</div>' +
-            '<div style="color:#8b949e;font-size:13px;">' + (industry || '') + (country ? ' · 📍 ' + country : '') + (weburl ? ' · <a href="https://' + weburl + '" target="_blank" style="color:#00d4aa;">' + weburl + '</a>' : '') + '</div>' +
+            '<div class="text-right">' +
+              '<div class="mono text-4xl font-extrabold">' + fmtPrice(price) + '</div>' +
+              '<div class="mono text-lg font-semibold ' + chgClass + '">' + (changeDol >= 0 ? '+' : '') + changeDol.toFixed(2) + ' (' + fmtChange(change) + ')</div>' +
+            '</div>' +
           '</div>' +
-          '<div style="text-align:right;">' +
-            '<div class="mono" style="font-size:32px;font-weight:800;">' + fmtPrice(price) + '</div>' +
-            '<div class="mono ' + chgClass + '" style="font-size:16px;font-weight:600;">' + (changeDol >= 0 ? '+' : '') + changeDol.toFixed(2) + ' (' + fmtChange(change) + ')</div>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">' +
+          '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
+            '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">📊 Market Cap</div>' +
+            '<div class="mono text-xl font-bold">' + fmtMktCap(mktCap) + '</div>' +
+          '</div>' +
+          '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
+            '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">⚡ Beta</div>' +
+            '<div class="mono text-xl font-bold">' + (beta != null ? beta.toFixed(2) : '—') + '</div>' +
+            '<div class="text-[11px] text-fg-400">' + betaLabel + '</div>' +
+          '</div>' +
+          '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
+            '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">📈 52W High</div>' +
+            '<div class="mono text-xl font-bold text-pos">' + fmtPrice(w52High) + '</div>' +
+            (pctFromHigh ? '<div class="text-[11px] text-fg-400">' + pctFromHigh + '% from current</div>' : '') +
+          '</div>' +
+          '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-4">' +
+            '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">📉 52W Low</div>' +
+            '<div class="mono text-xl font-bold text-neg">' + fmtPrice(w52Low) + '</div>' +
+            (pctFromLow ? '<div class="text-[11px] text-fg-400">+' + pctFromLow + '% from current</div>' : '') +
           '</div>' +
         '</div>' +
-        '<div style="margin-top:12px;">' +
-          '<button id="wlBtn" data-sym="' + symbol + '" style="background:' + (inWL ? '#ffd70022' : '#21262d') + ';border:1px solid ' + (inWL ? '#ffd700' : '#30363d') + ';color:' + (inWL ? '#ffd700' : '#8b949e') + ';border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:600;">' +
-            (inWL ? '⭐ In Watchlist' : '☆ Add to Watchlist') +
-          '</button>' +
-        '</div>' +
-      '</div>' +
+        (w52High && w52Low ?
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
+          '<div class="flex justify-between text-xs text-fg-400 mb-2">' +
+            '<span>52W Low: ' + fmtPrice(w52Low) + '</span>' +
+            '<span class="font-semibold text-fg-100">Current: ' + fmtPrice(price) + '</span>' +
+            '<span>52W High: ' + fmtPrice(w52High) + '</span>' +
+          '</div>' +
+          '<div class="range-bar"><div class="range-dot" style="left:' + Math.min(98,Math.max(2,rangePos)) + '%;"></div></div>' +
+        '</div>' : '') +
+        (flowSignalText ?
+        '<div class="bg-bg-800 border rounded-xl p-5 mb-4" style="border-color:' + flowColor + '44;">' +
+          '<div class="text-[11px] text-fg-400 uppercase tracking-wider mb-1">Money Flow Signal</div>' +
+          '<div class="text-base font-bold" style="color:' + flowColor + ';">' + flowSignalText + '</div>' +
+        '</div>' : '') +
+        '<div class="bg-bg-800 border border-stroke-500 rounded-xl p-5 mb-4">' +
+          '<div class="flex justify-between items-center mb-3 flex-wrap gap-2">' +
+            '<h3 class="text-sm font-semibold">Today\'s Price Action</h3>' +
+            '<div class="text-[11px] text-fg-400 mono">O: ' + fmtPrice(open) + '  H: ' + fmtPrice(high) + '  L: ' + fmtPrice(low) + '  C: ' + fmtPrice(price) + '</div>' +
+          '</div>' +
+          '<div class="relative h-48 md:h-56"><canvas id="intradayChart-detail"></canvas></div>' +
+          '<p class="text-[11px] text-fg-600 mt-2 text-center">⚠️ Simulated intraday data for demonstration</p>' +
+        '</div>';
 
-      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:14px;">' +
-        '<div class="card" style="padding:16px;">' +
-          '<div style="font-size:11px;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">📊 Market Cap</div>' +
-          '<div class="mono" style="font-size:20px;font-weight:700;">' + fmtMktCap(mktCap) + '</div>' +
-        '</div>' +
-        '<div class="card" style="padding:16px;">' +
-          '<div style="font-size:11px;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">⚡ Beta</div>' +
-          '<div class="mono" style="font-size:20px;font-weight:700;">' + (beta != null ? beta.toFixed(2) : '—') + '</div>' +
-          '<div style="font-size:11px;color:#8b949e;">' + betaLabel + '</div>' +
-        '</div>' +
-        '<div class="card" style="padding:16px;">' +
-          '<div style="font-size:11px;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">📈 52-Week High</div>' +
-          '<div class="mono positive" style="font-size:20px;font-weight:700;">' + fmtPrice(w52High) + '</div>' +
-          (pctFromHigh ? '<div style="font-size:11px;color:#8b949e;">' + pctFromHigh + '% from current</div>' : '') +
-        '</div>' +
-        '<div class="card" style="padding:16px;">' +
-          '<div style="font-size:11px;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">📉 52-Week Low</div>' +
-          '<div class="mono negative" style="font-size:20px;font-weight:700;">' + fmtPrice(w52Low) + '</div>' +
-          (pctFromLow ? '<div style="font-size:11px;color:#8b949e;">+' + pctFromLow + '% from current</div>' : '') +
-        '</div>' +
-      '</div>' +
+      if (typeof lucide !== "undefined" && typeof lucide.createIcons === "function") lucide.createIcons();
 
-      (w52High && w52Low ?
-      '<div class="card" style="padding:18px;margin-bottom:14px;">' +
-        '<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b949e;margin-bottom:8px;">' +
-          '<span>52-Week Low: ' + fmtPrice(w52Low) + '</span>' +
-          '<span style="font-weight:600;color:#e6edf3;">Current: ' + fmtPrice(price) + '</span>' +
-          '<span>52-Week High: ' + fmtPrice(w52High) + '</span>' +
-        '</div>' +
-        '<div class="range-bar">' +
-          '<div class="range-dot" style="left:' + Math.min(98,Math.max(2,rangePos)) + '%;"></div>' +
-        '</div>' +
-      '</div>' : '') +
-
-      (flowSignalText ?
-      '<div class="card" style="padding:18px;margin-bottom:14px;border-color:' + flowColor + '44;">' +
-        '<div style="font-size:11px;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Money Flow Signal</div>' +
-        '<div style="font-size:16px;font-weight:700;color:' + flowColor + ';">' + flowSignalText + '</div>' +
-      '</div>' : '') +
-
-      '<div class="card" style="padding:18px;margin-bottom:14px;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">' +
-          '<h3 style="font-size:15px;font-weight:600;">Today\'s Price Action</h3>' +
-          '<div style="font-size:11px;color:#8b949e;">O: ' + fmtPrice(open) + '&nbsp; H: ' + fmtPrice(high) + '&nbsp; L: ' + fmtPrice(low) + '&nbsp; C: ' + fmtPrice(price) + '</div>' +
-        '</div>' +
-        '<canvas id="intradayChart" style="max-height:200px;"></canvas>' +
-        '<p style="font-size:11px;color:#30363d;margin-top:8px;text-align:center;">⚠️ Intraday chart is simulated — sample data for demonstration</p>' +
-      '</div>';
-
-    // Watchlist button handler
-    var wlBtn = document.getElementById('wlBtn');
-    if (wlBtn) {
-      wlBtn.addEventListener('click', function() {
-        var sym = this.dataset.sym;
-        var idx = watchlist.indexOf(sym);
-        if (idx === -1) watchlist.push(sym); else watchlist.splice(idx, 1);
-        var isIn = watchlist.indexOf(sym) !== -1;
-        this.textContent = isIn ? '⭐ In Watchlist' : '☆ Add to Watchlist';
-        this.style.background = isIn ? '#ffd70022' : '#21262d';
-        this.style.borderColor = isIn ? '#ffd700' : '#30363d';
-        this.style.color = isIn ? '#ffd700' : '#8b949e';
+      document.getElementById('backFromDetail-btn').addEventListener('click', function() {
+        if (currentETF) { openHoldings(currentETF); }
+        else { switchTab('etf'); }
       });
-    }
 
-    // Render intraday chart after DOM is updated
-    setTimeout(function() {
-      var canvas = document.getElementById('intradayChart');
-      if (canvas) {
-        var labels = intradayPoints.map(function(_, i) {
+      // Intraday chart
+      setTimeout(function() {
+        var canvas = document.getElementById('intradayChart-detail');
+        if (!canvas) return;
+        var pts = generateIntradayPoints(open, high, low, price, 30);
+        var labels = pts.map(function(_, i) {
           var h = 9 + Math.floor((i * 390/30) / 60);
           var min = (i * 390/30) % 60;
           return h + ':' + String(Math.round(min)).padStart(2,'0');
@@ -895,17 +1028,14 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: labels,
             datasets: [{
               label: symbol,
-              data: intradayPoints,
+              data: pts,
               borderColor: change >= 0 ? '#00ff7f' : '#ff4d4d',
               backgroundColor: change >= 0 ? 'rgba(0,255,127,0.08)' : 'rgba(255,77,77,0.08)',
-              borderWidth: 2,
-              fill: true,
-              tension: 0.4,
-              pointRadius: 0,
+              borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0
             }]
           },
           options: {
-            responsive: true,
+            responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return fmtPrice(c.raw); } } } },
             scales: {
               x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 10 } } },
@@ -913,114 +1043,111 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
         });
+      }, 50);
+    }
+
+    function generateIntradayPoints(open, high, low, close, count) {
+      var pts = [open];
+      for (var i = 1; i < count - 1; i++) {
+        var t = i / (count - 1);
+        var target = open + (close - open) * t;
+        var range = (high - low) * 0.3;
+        var noise = (Math.random() - 0.5) * range;
+        pts.push(Math.min(high, Math.max(low, target + noise * (1 - t * 0.5))));
       }
-    }, 50);
-  }
+      pts.push(close);
+      return pts;
+    }
 
-  // ── SEARCH ──
-  searchInput.addEventListener('input', function() {
-    clearTimeout(searchDebounce);
-    var q = searchInput.value.trim().toLowerCase();
-    if (q.length < 1) { searchDropdown.classList.add('hidden'); return; }
-    searchDebounce = setTimeout(function() {
-      var allKeys = Object.keys(SEARCH_DB);
-      var results = allKeys.filter(function(sym) {
-        var entry = SEARCH_DB[sym];
-        return sym.toLowerCase().indexOf(q) !== -1 || entry.description.toLowerCase().indexOf(q) !== -1;
-      }).slice(0, 8).map(function(sym) {
-        return SEARCH_DB[sym];
-      });
+    // ── SEARCH ──
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchDebounce);
+      var q = searchInput.value.trim().toLowerCase();
+      if (q.length < 1) { searchDropdown.classList.add('hidden'); return; }
+      searchDebounce = setTimeout(function() {
+        var allKeys = Object.keys(SEARCH_DB);
+        var results = allKeys.filter(function(sym) {
+          var entry = SEARCH_DB[sym];
+          return sym.toLowerCase().indexOf(q) !== -1 || entry.description.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 8);
 
-      if (!results.length) {
-        searchDropdown.innerHTML = '<div style="padding:14px;color:#8b949e;font-size:13px;text-align:center;">No results found for "' + searchInput.value.trim() + '"</div>';
+        if (!results.length) {
+          searchDropdown.innerHTML = '<div class="p-4 text-fg-400 text-sm text-center">No results for "' + searchInput.value.trim() + '"</div>';
+          searchDropdown.classList.remove('hidden');
+          return;
+        }
+
+        searchDropdown.innerHTML = results.map(function(sym) {
+          var r = SEARCH_DB[sym];
+          var isETF = ETF_DATA[sym] != null;
+          return '<div class="search-item" data-symbol="' + sym + '" data-type="' + (isETF ? 'etf' : 'stock') + '">' +
+            '<div><span class="font-bold">' + sym + '</span><span class="text-fg-400 text-sm ml-2">' + r.description + '</span></div>' +
+            '<span class="text-[11px] ' + (isETF ? 'text-accent-500' : 'text-fg-400') + '">' + (isETF ? '● ETF' : r.type) + '</span>' +
+          '</div>';
+        }).join('');
         searchDropdown.classList.remove('hidden');
-        return;
-      }
 
-      searchDropdown.innerHTML = results.map(function(r) {
-        var inList = STOCKS.indexOf(r.symbol) !== -1;
-        return '<div class="search-item" data-symbol="' + r.symbol + '">' +
-          '<div><span style="font-weight:700;">' + r.symbol + '</span><span style="color:#8b949e;font-size:13px;margin-left:8px;">' + r.description + '</span></div>' +
-          '<span style="font-size:11px;color:' + (inList ? '#00d4aa' : '#8b949e') + ';">' + (inList ? '● Tracked' : 'Search') + '</span>' +
-        '</div>';
-      }).join('');
-      searchDropdown.classList.remove('hidden');
-
-      searchDropdown.querySelectorAll('.search-item').forEach(function(item) {
-        item.addEventListener('click', function() {
-          loadStockDetail(item.dataset.symbol);
-          searchInput.value = '';
-          searchDropdown.classList.add('hidden');
+        searchDropdown.querySelectorAll('.search-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            var sym = item.dataset.symbol;
+            var type = item.dataset.type;
+            searchInput.value = '';
+            searchDropdown.classList.add('hidden');
+            if (type === 'etf') { openHoldings(sym); }
+            else { currentETF = null; loadStockDetail(sym); }
+          });
         });
-      });
-    }, 200);
-  });
+      }, 200);
+    });
 
-  document.addEventListener('click', function(e) {
-    if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
-      searchDropdown.classList.add('hidden');
-    }
-  });
+    document.addEventListener('click', function(e) {
+      if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) searchDropdown.classList.add('hidden');
+    });
 
-  // ── AUTO REFRESH ──
-  refreshToggleBtn.addEventListener('click', function() {
-    autoRefresh = !autoRefresh;
-    if (autoRefresh) {
-      refreshToggleBtn.textContent = 'ON';
-      refreshToggleBtn.style.background = '#00d4aa22';
-      refreshToggleBtn.style.color = '#00d4aa';
-      refreshToggleBtn.style.borderColor = '#00d4aa';
-      refreshCountdown.classList.remove('hidden');
-      startRefreshTimer();
-    } else {
-      refreshToggleBtn.textContent = 'OFF';
-      refreshToggleBtn.style.background = '#21262d';
-      refreshToggleBtn.style.color = '#8b949e';
-      refreshToggleBtn.style.borderColor = '#30363d';
-      refreshCountdown.classList.add('hidden');
+    // ── AUTO REFRESH ──
+    refreshToggleBtn.addEventListener('click', function() {
+      autoRefresh = !autoRefresh;
+      if (autoRefresh) {
+        refreshToggleBtn.textContent = 'ON';
+        refreshToggleBtn.style.background = '#00d4aa22';
+        refreshToggleBtn.style.color = '#00d4aa';
+        refreshToggleBtn.style.borderColor = '#00d4aa';
+        refreshCountdownEl.classList.remove('hidden');
+        startRefreshTimer();
+      } else {
+        refreshToggleBtn.textContent = 'OFF';
+        refreshToggleBtn.style.background = '#21262d';
+        refreshToggleBtn.style.color = '#8b949e';
+        refreshToggleBtn.style.borderColor = '#30363d';
+        refreshCountdownEl.classList.add('hidden');
+        clearInterval(refreshTimer);
+      }
+    });
+
+    function startRefreshTimer() {
+      refreshSecondsLeft = 300;
       clearInterval(refreshTimer);
+      refreshTimer = setInterval(function() {
+        refreshSecondsLeft--;
+        var m = Math.floor(refreshSecondsLeft / 60);
+        var s = refreshSecondsLeft % 60;
+        refreshCountdownEl.textContent = m + ':' + String(s).padStart(2, '0');
+        if (refreshSecondsLeft <= 0) {
+          refreshSecondsLeft = 300;
+          // Simulate price update
+          ETF_TICKERS.forEach(function(sym) {
+            if (!etfQuotes[sym] || etfQuotes[sym].price == null) return;
+            var delta = (Math.random() - 0.5) * 1.5;
+            etfQuotes[sym].price = parseFloat((etfQuotes[sym].price + delta).toFixed(2));
+            etfQuotes[sym].change = parseFloat((etfQuotes[sym].change + (Math.random() - 0.5) * 0.2).toFixed(2));
+          });
+          renderETFGrid();
+          renderHeatmap();
+        }
+      }, 1000);
     }
-  });
 
-  function startRefreshTimer() {
-    refreshSecondsLeft = 60;
-    clearInterval(refreshTimer);
-    refreshTimer = setInterval(function() {
-      refreshSecondsLeft--;
-      refreshCountdown.textContent = refreshSecondsLeft + 's';
-      if (refreshSecondsLeft <= 0) {
-        refreshSecondsLeft = 60;
-        // Slightly randomize data on refresh to simulate live updates
-        marketData.forEach(function(s) {
-          if (s.price == null) return;
-          var delta = (Math.random() - 0.5) * 2;
-          s.price = parseFloat((s.price + delta).toFixed(2));
-          s.change = parseFloat((s.change + (Math.random() - 0.5) * 0.3).toFixed(2));
-          s.high = Math.max(s.high, s.price);
-          s.low = Math.min(s.low, s.price);
-        });
-        renderMarketTable();
-        renderFlowSummary();
-      }
-    }, 1000);
-  }
-
-  // ── INTRADAY SIMULATION ──
-  function generateIntradayPoints(open, high, low, close, count) {
-    var pts = [open];
-    for (var i = 1; i < count - 1; i++) {
-      var t = i / (count - 1);
-      var target = open + (close - open) * t;
-      var range = (high - low) * 0.3;
-      var noise = (Math.random() - 0.5) * range;
-      var val = target + noise * (1 - t * 0.5);
-      pts.push(Math.min(high, Math.max(low, val)));
-    }
-    pts.push(close);
-    return pts;
-  }
-
-});
+  })();
   </script>
 </body>
 </html>
